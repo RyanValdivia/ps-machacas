@@ -144,6 +144,3 @@ Frontend (`frontend/package.json`):
 - `npm run preview`
 - `npm run tauri`
 
-## Estado de documentación previa
-
-El `README.md` anterior correspondía a otro proyecto. Este archivo refleja la estructura y ejecución reales del repositorio actual clonado.

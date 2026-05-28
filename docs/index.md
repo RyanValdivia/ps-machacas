@@ -235,42 +235,50 @@ Se utiliza un enfoque ágil basado en **Scrum**. El trabajo se divide en iteraci
 
 ## 7. Cronograma de Sprints y Entregables
 
-<table style="width: 100%; border-collapse: collapse; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 30px;">
+<table style="width: 100%; border-collapse: collapse; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 30px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
   <thead>
     <tr style="background-color: #F1F5F9; border-bottom: 2px solid #E2E8F0;">
       <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 15%;">Sprint</th>
-      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 20%;">Fechas</th>
-      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 35%;">Actividades Principales de QA</th>
-      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 30%;">Entregables Clave</th>
+      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 15%;">Fechas</th>
+      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 45%;">Actividades Principales de QA</th>
+      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 25%;">Entregables Clave</th>
     </tr>
   </thead>
-  <tbody style="color: #334155; line-height: 1.5;">
-    <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 1 <span style="background-color: #DCFCE7; color: #166534; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">✓ Completado</span></td>
+  <tbody style="color: #334155; line-height: 1.5; font-size: 0.95rem;">
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #64748B;">Sprint 1<br><small style="color: #16A34A; font-weight: 600;">Completado</small></td>
       <td style="padding: 12px; color: #64748B;">14/05 - 28/05</td>
-      <td style="padding: 12px;">Análisis inicial, configuración de entorno (Pages/Actions) y plan de trabajo.</td>
-      <td style="padding: 12px;">Repositorio base, GitHub Pages, plan de trabajo publicado.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 2 <span style="background-color: #DBEAFE; color: #1D4ED8; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">▶ En curso</span></td>
-      <td style="padding: 12px; color: #64748B;">28/05 - 10/06</td>
-      <td style="padding: 12px;">Estrategia detallada y diseño de casos de prueba base para los módulos <code>products</code>, <code>clients</code> y <code>users</code>.</td>
-      <td style="padding: 12px;">Backlog en GitHub Issues y matriz de casos base priorizados.</td>
+      <td style="padding: 12px; color: #64748B;">Búsqueda y selección del nuevo proyecto de software comercial. Análisis inicial de viabilidad, preparación del repositorio base y despliegue del ecosistema de entornos mediante la configuración de GitHub Pages y GitHub Actions.</td>
+      <td style="padding: 12px; color: #64748B;">Repositorio base configurado, GitHub Pages activo y Plan de Trabajo estructurado.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 3 <span style="background-color: #F1F5F9; color: #64748B; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">Planificado</span></td>
-      <td style="padding: 12px; color: #64748B;">11/06 - 24/06</td>
-      <td style="padding: 12px;">Diseño de escenarios de prueba para <code>sales</code> y <code>cash</code>, e implementación de pruebas unitarias.</td>
-      <td style="padding: 12px;">Casos de prueba de ventas y caja, suite unitaria implementada.</td>
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;">Sprint 2<br><small style="color: #0284C7; font-weight: 600;">En curso</small></td>
+      <td style="padding: 12px;">28/05 - 10/06</td>
+      <td style="padding: 12px;">Fase de Análisis y Diseño (Semanas 1 y 2 del Plan de Pruebas). Elaboración del inventario de módulos críticos enfocados en productos, clientes y usuarios. Identificación de riesgos técnicos, definición de criterios de calidad y modelado detallado de casos de prueba con sus respectivos datos de prueba (fixtures) y matriz de trazabilidad.</td>
+      <td style="padding: 12px;">Backlog de historias de usuario en GitHub Issues, matriz de casos de prueba estructurada y datos/fixtures de prueba definidos.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 4 <span style="background-color: #F1F5F9; color: #64748B; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">Planificado</span></td>
-      <td style="padding: 12px; color: #64748B;">25/06 - 08/07</td>
-      <td style="padding: 12px;">Pruebas de integración, auditoría de cobertura (≥ 85%), análisis estático y cierre de evidencias.</td>
-      <td style="padding: 12px;">Suite integrada, reporte final de cobertura y cierre de QA.</td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 3<br><small style="color: #64748B;">Planificado</small></td>
+      <td style="padding: 12px;">11/06 - 24/06</td>
+      <td style="padding: 12px;">Fase de Implementación de Código de Pruebas (Semanas 3 y 4 del Plan de Pruebas). Programación y ajuste de la suite de pruebas unitarias y de integración sobre el backend (modelos, servicios y API REST) con énfasis en los flujos lógicos de ventas y caja. Desarrollo y acoplamiento en paralelo de las pruebas de componentes, servicios y rutas en el frontend.</td>
+      <td style="padding: 12px;">Suite de pruebas automatizadas de backend y frontend implementada en el entorno local de desarrollo.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600;">Sprint 4<br><small style="color: #64748B;">Planificado</small></td>
+      <td style="padding: 12px;">25/06 - 08/07</td>
+      <td style="padding: 12px;">Fase de Ejecución y Finalización (Semanas 5 y 6 del Plan de Pruebas). Automatización de la ejecución de la suite en el pipeline de Integración Continua (GitHub Actions). Ejecución de la suite completa de regresión, pruebas negativas y validación estricta de permisos de usuario. Consolidación de métricas finales, auditoría de cobertura de código (Target Cobertura &ge; 85%) y documentación de lecciones aprendidas.</td>
+      <td style="padding: 12px;">Pipeline de CI/CD verificado, reporte final de métricas de cobertura de código e informe de cierre de pruebas publicado.</td>
     </tr>
   </tbody>
 </table>
+
+### Justificación de la Distribución del Cronograma
+
+La estructuración del cronograma de trabajo responde de manera estratégica a los principios de la ingeniería de pruebas y la gestión ágil de proyectos:
+
+* **Correspondencia de Ciclos (Scrum-Testing Mapping):** La distribución agrupa de manera exacta un plan técnico de pruebas de 6 semanas en 3 Sprints de ejecución activa de 14 días cada uno. El Sprint 1 actuó como la fase de preparación necesaria para asegurar que el repositorio, el stack y las herramientas automáticas estuvieran listas y validadas antes de iniciar el ciclo formal de pruebas de software.
+* **Cohesión de Fases por Iteración:** Cada Sprint posee un objetivo temático único para el equipo de QA, evitando la dispersión de esfuerzos. El Sprint 2 une el Análisis y el Diseño para entender el sistema de manera profunda antes de codificar; el Sprint 3 se concentra netamente en la construcción simultánea de pruebas en el backend y frontend; y el Sprint 4 se dedica a la certificación automatizada en el pipeline de Integración Continua.
+* **Principio de Detección Temprana de Defectos:** Modelar las historias de usuario, los criterios de aceptación y los fixtures de datos en el Sprint 2, previo a la ejecución masiva de los Sprints siguientes, garantiza que el equipo cuente con una guía clara de trazabilidad. Esto reduce los costos de corrección de errores y asegura que las automatizaciones en GitHub Actions se configuren sobre una base de pruebas previamente validada a nivel local.
 
 ---
 
