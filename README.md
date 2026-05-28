@@ -13,6 +13,8 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 ![Dashboard principal](docs/Dashboard_Principal.png)
 ![Punto de venta](docs/Punto_Venta.png)
 ![Inventario](docs/Inventario.png)
+![Clientes](docs/Clientes.png)
+![Reportes](docs/Reportes.png)
 
 ## Stack
 
@@ -61,7 +63,6 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 ### Sistemas operativos compatibles
 
 - Windows.
-
 
 ## Variables y puertos
 
@@ -156,4 +157,3 @@ Frontend (`frontend/package.json`):
 - `npm run lint`
 - `npm run preview`
 - `npm run tauri`
-
