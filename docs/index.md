@@ -135,7 +135,9 @@ Las pruebas y el aseguramiento de calidad se concentrarán de forma estricta en 
 
 ## 7. Cronograma de Sprints y Entregables
 
-Por completar--
+Por completar
+
+---
 
 ## 8. Estructura de Entornos y Flujo de Trabajo
 
