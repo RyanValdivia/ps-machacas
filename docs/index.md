@@ -134,3 +134,35 @@ Las pruebas y el aseguramiento de calidad se concentrarán de forma estricta en 
 ---
 
 ## 7. Cronograma de Sprints y Entregables
+
+┌─────────────────────────────────────────────────────────────┐
+│ Cronograma General del Proyecto (Ciclo de Sprints)          │
+├──────────┬──────────────────────────────────────┬───────────┤
+│ Sprint   │ Actividades Principales              │ Duración  │
+├──────────┼──────────────────────────────────────┼───────────┤
+│ Sprint 0 │ Setup local, GitHub Pages y Actions  │ 1 Semana  │
+│ Sprint 1 │ Análisis de módulos y Backlog inicial│ 2 Semanas │
+│ Sprint 2 │ Diseño de Casos de Prueba Unitarios  │ 2 Semanas │
+│ Sprint 3 │ Ejecución de Pruebas Unitarias Core  │ 2 Semanas │
+│ Sprint 4 │ Pruebas de Integración de la API     │ 2 Semanas │
+│ Sprint 5 │ Automatización final CI/CD (QA)      │ 2 Semanas │
+│ Sprint 6 │ Cierre de Cobertura y Métricas       │ 2 Semanas │
+│ Sprint 7 │ Sustentación y Documentación Final   │ 1 Semana  │
+└──────────┴──────────────────────────────────────┴───────────┘
+
+### Detalle de Entregables de la Fase Inicial
+
+* **Entregables del Sprint 0:** Repositorio base clonado con éxito, entorno de desarrollo local (DEV) documentado en la Wiki, flujo inicial de GitHub Actions configurado para detectar la ejecución de pruebas, y publicación de este sitio web institucional en GitHub Pages.
+* **Entregables del Sprint 1:** Historias de usuario completamente mapeadas con sus respectivos criterios de aceptación integradas en GitHub Issues, asignación formal de tareas y establecimiento de la línea base de cobertura del código original.
+
+---
+
+## 8. Estructura de Entornos y Flujo de Trabajo
+
+### Flujo de Integración Continua (DEV ➔ QA ➔ MAIN)
+
+Para garantizar la estabilidad del software, el equipo implementará un flujo de promoción de código estrictamente controlado por automatizaciones:
+
+1. **Entorno DEV (Ramas de características):** Cada diseñador o arquitecto de pruebas escribe sus scripts localmente en ramas de tipo `feature/`.
+2. **Entorno QA (Rama `qa`):** Al solicitar la integración mediante un Pull Request hacia la rama `qa`, *GitHub Actions* se dispara automáticamente ejecutando la suite completa de pruebas. Si el porcentaje de cobertura disminuye o una prueba falla, la integración se bloquea de manera obligatoria.
+3. **Entorno Estable (Rama `main`):** Una vez validadas todas las pruebas y métricas en el entorno de calidad, el Test Lead autoriza el paso final del código hacia la rama principal.
