@@ -246,40 +246,28 @@ Se utiliza un enfoque ágil basado en **Scrum**. El trabajo se divide en iteraci
   </thead>
   <tbody style="color: #334155; line-height: 1.5;">
     <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 0</td>
-      <td style="padding: 12px; color: #64748B;">28/05 - 03/06</td>
-      <td style="padding: 12px;">Análisis inicial del repositorio RegistreMe, identificación de riesgos y configuración de entornos (Pages/Actions).</td>
-      <td style="padding: 12px;">Repositorio base, GitHub Pages activo y setup de entorno DEV.</td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 1 <span style="background-color: #DCFCE7; color: #166534; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">✓ Completado</span></td>
+      <td style="padding: 12px; color: #64748B;">14/05 - 28/05</td>
+      <td style="padding: 12px;">Análisis inicial, configuración de entorno (Pages/Actions) y plan de trabajo.</td>
+      <td style="padding: 12px;">Repositorio base, GitHub Pages, plan de trabajo publicado.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 1</td>
-      <td style="padding: 12px; color: #64748B;">04/06 - 17/06</td>
-      <td style="padding: 12px;">Definición de la estrategia detallada de testing y diseño de casos de prueba base para los módulos <code>products</code>, <code>clients</code> y <code>users</code>.</td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 2 <span style="background-color: #DBEAFE; color: #1D4ED8; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">▶ En curso</span></td>
+      <td style="padding: 12px; color: #64748B;">28/05 - 10/06</td>
+      <td style="padding: 12px;">Estrategia detallada y diseño de casos de prueba base para los módulos <code>products</code>, <code>clients</code> y <code>users</code>.</td>
       <td style="padding: 12px;">Backlog en GitHub Issues y matriz de casos base priorizados.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 2</td>
-      <td style="padding: 12px; color: #64748B;">18/06 - 01/07</td>
-      <td style="padding: 12px;">Diseño de escenarios de prueba para los módulos <code>sales</code> y <code>cash</code>, e inicio de la ejecución de pruebas unitarias.</td>
-      <td style="padding: 12px;">Casos de prueba de ventas y caja, suite unitaria actualizada.</td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 3 <span style="background-color: #F1F5F9; color: #64748B; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">Planificado</span></td>
+      <td style="padding: 12px; color: #64748B;">11/06 - 24/06</td>
+      <td style="padding: 12px;">Diseño de escenarios de prueba para <code>sales</code> y <code>cash</code>, e implementación de pruebas unitarias.</td>
+      <td style="padding: 12px;">Casos de prueba de ventas y caja, suite unitaria implementada.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 3</td>
-      <td style="padding: 12px; color: #64748B;">02/07 - 15/07</td>
-      <td style="padding: 12px;">Implementación y ejecución de pruebas de integración entre módulos. Pruebas de flujos end-to-end (venta completa → pago → comprobante) y análisis de fallos.</td>
-      <td style="padding: 12px;">Suite de integración estable y reporte de defectos inicial.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 4</td>
-      <td style="padding: 12px; color: #64748B;">16/07 - 29/07</td>
-      <td style="padding: 12px;">Auditoría de cobertura de código (Coverage >= 85%), análisis de tipado estricto con mypy y pruebas de regresión completa en CI.</td>
-      <td style="padding: 12px;">Reporte de cobertura final, pipeline verde y hardening del código.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 5</td>
-      <td style="padding: 12px; color: #64748B;">30/07 - 05/08</td>
-      <td style="padding: 12px;">Fase de cierre de testing: preparación de métricas finales, lecciones aprendidas y empaquetado de evidencias para la entrega final.</td>
-      <td style="padding: 12px;">Informe final de cierre de QA y matriz de defectos cerrada.</td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 4 <span style="background-color: #F1F5F9; color: #64748B; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: 6px;">Planificado</span></td>
+      <td style="padding: 12px; color: #64748B;">25/06 - 08/07</td>
+      <td style="padding: 12px;">Pruebas de integración, auditoría de cobertura (≥ 85%), análisis estático y cierre de evidencias.</td>
+      <td style="padding: 12px;">Suite integrada, reporte final de cobertura y cierre de QA.</td>
     </tr>
   </tbody>
 </table>
