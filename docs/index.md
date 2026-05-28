@@ -83,23 +83,15 @@ El sistema está orientado a negocios del sector óptico que requieren control d
 </div>
 
 <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">B. Dashboard Secundario — Ventas por Vendedor y Sucursal</p>
-  <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Vista detallada de ventas por vendedor con historial de transacciones, seguimiento de ventas pendientes con estados de pago y de recojo (Pendiente, Parcial, Pagado, Laboratorio, Listo), y resumen de desempeño por sucursal.</p>
-  <div style="text-align: center;">
-    <img src="Dashboard_secundario.png" alt="Dashboard Secundario de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
-  </div>
-</div>
-
-<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">C. Punto de Venta</p>
-  <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Interfaz de venta rápida con búsqueda de productos, registro de datos del cliente, selección de tipo de comprobante (Boleta/Factura), múltiples métodos de pago, gestión de adelantos y procesamiento de la venta con generación automática de nota de venta.</p>
+  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">B. Punto de Venta</p>
+  <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Interfaz de venta rápida con búsqueda de productos, registro de datos del cliente, selección de tipo de comprobante (Boleta/Factura), múltiples métodos de pago (Efectivo, Yape, Visa, Transferencia, Plin, Mixto), gestión de adelantos y procesamiento de la venta con generación automática de nota de venta.</p>
   <div style="text-align: center;">
     <img src="Punto_Venta.png" alt="Punto de Venta de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
 <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">D. Inventario Central</p>
+  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">C. Inventario Central</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Módulo de gestión de productos globales disponibles para todas las sucursales. Muestra código, descripción, stock central, categoría, material, público objetivo, precio de venta, margen de ganancia y estado. Permite agregar nuevos productos con generación automática de código y descripción.</p>
   <div style="text-align: center;">
     <img src="Inventario.png" alt="Inventario Central de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
@@ -107,7 +99,23 @@ El sistema está orientado a negocios del sector óptico que requieren control d
 </div>
 
 <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">E. Configuración y Administración de Acceso</p>
+  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">D. Clientes y Prescripciones</p>
+  <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Módulo de gestión de clientes y sus recetas oftalmológicas. Permite registrar clientes con DNI, nombre completo, teléfono, edad y fecha de nacimiento, con búsqueda y filtros integrados.</p>
+  <div style="text-align: center;">
+    <img src="Clientes.png" alt="Clientes y Prescripciones de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+  </div>
+</div>
+
+<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">E. Reportes Analíticos</p>
+  <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Panel de análisis de ventas, rentabilidad y desempeño. Muestra ingresos totales, ganancias, costos y ticket promedio, con vistas por día, mes y año. Incluye métricas de desempeño por vendedor, distribución por caja, ventas por vendedor y ventas por caja.</p>
+  <div style="text-align: center;">
+    <img src="Reportes.png" alt="Reportes Analíticos de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+  </div>
+</div>
+
+<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+  <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">F. Configuración y Administración de Acceso</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Panel de administración con gestión de usuarios y permisos por rol, configuración de sucursales, cajas registradoras y proveedores. Permite agregar usuarios con roles como Gerente, Supervisor, Cajero, Vendedor y Optómetra.</p>
   <div style="text-align: center;">
     <img src="Ajustes.png" alt="Configuración de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
@@ -130,7 +138,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
       <td style="padding: 12px; font-weight: 600; color: #0284C7;">Frontend</td>
-      <td style="padding: 12px;">React, TypeScript, Vite</td>
+      <td style="padding: 12px;">React 19, TypeScript, Vite, TailwindCSS</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0;">
       <td style="padding: 12px; font-weight: 600; color: #0284C7;">Empaquetado Desktop</td>
@@ -143,12 +151,67 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   </tbody>
 </table>
 
-### 2.3. Justificación de la Elección
+### 2.3. Módulos del Sistema
+
+El backend de **RegistreMe** está organizado en aplicaciones Django independientes, cada una con responsabilidad única dentro del dominio de la óptica:
+
+<table style="width: 100%; border-collapse: collapse; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 30px;">
+  <thead>
+    <tr style="background-color: #F1F5F9; border-bottom: 2px solid #E2E8F0;">
+      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 25%;">Módulo</th>
+      <th style="padding: 12px; text-align: left; color: #1E293B; font-weight: 600; width: 75%;">Responsabilidad</th>
+    </tr>
+  </thead>
+  <tbody style="color: #334155; line-height: 1.5;">
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>users</code></td>
+      <td style="padding: 12px;">Autenticación JWT, gestión de usuarios y asignación de roles (Gerente, Vendedor, Cajero, Supervisor, Optómetra, Logística).</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>products</code></td>
+      <td style="padding: 12px;">Gestión de monturas y accesorios con validaciones por categoría (material, talla, marca), generación automática de códigos y descripciones, y configuración de lunas personalizadas (material, tipo, características adicionales como Blue Block o fotocromático).</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>sales</code></td>
+      <td style="padding: 12px;">Flujo completo de ventas: creación de venta, detalle de productos y lunas, registro de pagos (adelantos y saldo), gestión de estados de pago (Pendiente, Parcial, Pagado, Anulado) y de entrega (Pendiente, Listo, Entregado), y generación de comprobantes (Nota de Venta).</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>cash</code></td>
+      <td style="padding: 12px;">Apertura y cierre de sesiones de caja por sucursal, con asignación automática de ventas a la caja activa y registro de montos iniciales y de cierre.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>clients</code></td>
+      <td style="padding: 12px;">Registro de clientes con datos personales (DNI, nombre completo, teléfono, fecha de nacimiento) y gestión de recetas oftalmológicas.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>categories</code></td>
+      <td style="padding: 12px;">Catálogo de categorías de productos (Montura — <code>MO</code>, Accesorio — <code>AC</code>, Lunas), usado para aplicar validaciones específicas por tipo de producto.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>suppliers</code></td>
+      <td style="padding: 12px;">Gestión de proveedores de monturas y laboratorios fabricantes de lunas personalizadas, asociados a los detalles de venta.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>opticalCenter</code></td>
+      <td style="padding: 12px;">Configuración de la empresa óptica: nombre, logo, sucursales, dirección y datos de contacto institucional.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>external_services</code></td>
+      <td style="padding: 12px;">Proxy para integraciones con servicios externos (p. ej., consulta de DNI/RUC a APIs de SUNAT o RENIEC).</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;"><code>sequences</code></td>
+      <td style="padding: 12px;">Gestión de secuencias numéricas y correlativos para la generación automática de códigos de producto y números de comprobante.</td>
+    </tr>
+  </tbody>
+</table>
+
+### 2.4. Justificación de la Elección
 
 La elección de **RegistreMe** se fundamenta en su idoneidad para el trabajo de QA del curso:
 
 * **Dominio real y representativo:** Sistema orientado al sector empresarial de ópticas, con lógica de negocio compleja y validaciones críticas en modelos.
-* **Arquitectura modular:** Backend Django separado en apps independientes (`products`, `sales`, `clients`, `cash`, `users`, `suppliers`, `opticalCenter`) que facilita la cobertura por capas.
+* **Arquitectura modular:** Backend Django separado en 10 apps independientes que facilita la cobertura por capas y el aislamiento de pruebas.
 * **Código propio:** Al ser un proyecto desarrollado por el equipo, se tiene acceso total al código fuente, lo que permite diseñar pruebas tanto de caja blanca como de caja negra con mayor profundidad.
 * **Reglas de negocio verificables:** Validaciones en modelos (stock, precios, lunas personalizadas, estados de venta) y flujos completos que pueden probarse con precisión mediante pruebas unitarias y de integración.
 
