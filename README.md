@@ -50,6 +50,27 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 - PostgreSQL (para modo backend/frontend web)
 - Rust toolchain (solo para Tauri)
 
+## Entorno operativo
+
+### Plataforma de hardware
+
+- Memoria RAM: 4 GB como mínimo.
+- Almacenamiento SSD de al menos 250 GB.
+- Equipos periféricos como impresoras térmicas para la emisión de órdenes de venta.
+
+### Sistemas operativos compatibles
+
+- Windows.
+
+### Software y componentes
+
+El sistema utiliza las siguientes tecnologías:
+
+- Backend: Django.
+- Frontend: React.
+- Base de datos: PostgreSQL.
+
+
 ## Variables y puertos
 
 Valores usados en el código por defecto:
