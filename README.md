@@ -2,6 +2,17 @@
   <img src="docs/logo_machaca.png" alt="Logo La Machaca" width="320" />
   <h1>Proyecto Healthchecks</h1>
   <p><strong>QA Team: La Machaca</strong></p>
+  <p>
+    <a href="https://github.com/healthchecks/healthchecks/actions/workflows/tests.yml">
+      <img src="https://github.com/healthchecks/healthchecks/actions/workflows/tests.yml/badge.svg" alt="Tests" />
+    </a>
+    <a href="https://coveralls.io/github/healthchecks/healthchecks?branch=master">
+      <img src="https://coveralls.io/repos/healthchecks/healthchecks/badge.svg?branch=master&service=github" alt="Coverage Status" />
+    </a>
+    <a href="https://github.com/healthchecks/healthchecks/blob/master/LICENSE">
+      <img src="https://img.shields.io/badge/license-BSD%203--Clause-blue.svg" alt="License: BSD-3-Clause" />
+    </a>
+  </p>
 </div>
 
 Repositorio del proyecto final del curso **Pruebas de Software** (UNSA), enfocado en aseguramiento de calidad sobre el repositorio oficial de **Healthchecks**.
