@@ -6,6 +6,14 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 - `frontend/`: interfaz React + Vite + Tailwind
 - `frontend/src-tauri/`: empaquetado desktop con Tauri (Windows)
 
+![Logo RegistraMe](docs/logo_machaca.png)
+
+## Vistas clave
+
+![Dashboard principal](docs/Dashboard_Principal.png)
+![Punto de venta](docs/Punto_Venta.png)
+![Inventario](docs/Inventario.png)
+
 ## Stack
 
 - Backend: Python, Django, Django REST Framework, JWT, PostgreSQL
