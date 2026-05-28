@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo_machaca.png" alt="Logo La Machaca" width="180"/>
+  <img src="logo_machaca.png" alt="Logo La Machaca" width="400"/>
   <h1> Proyecto Healthchecks <br> <small>QA Team: La Machaca</small></h1>
 
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
@@ -108,7 +108,7 @@ El equipo se ha organizado distribuyendo las responsabilidades técnicas del cic
 | Rol QA | Responsabilidades Clave | Integrantes Asignados |
 | :--- | :--- | :--- |
 | **Test Lead** | Planificación estratégica, gestión de riesgos, control de Sprints y aprobación de entregables. | *Valdivia Segovia, Ryan Fabian<br>* Ajra Huacso, Jeans Anthony |
-| **Test Analyst** | Análisis de criterios de aceptación, diseño de historias de usuario y documentación de defectos. | * Luque Condori, Luis Guillermo |
+| **Test Analyst** | Análisis de criterios de aceptación, diseño de historias de usuario y documentación de defectos. | Luque Condori, Luis Guillermo |
 | **Test Architect** | Diseño del entorno de pruebas, configuración de pipelines CI/CD y estándares de automatización. | *Garambel Marin, Fernando Miguel<br>* Hancco Mullisaca, Sergio Danilo |
 | **Test Designer** | Creación detallada de casos de prueba, generación de datos de prueba y scripts de testing. | *Huacani Jara, Denise Andrea<br>* Pacheco Palo, Fabiana Francinet |
 
@@ -135,27 +135,7 @@ Las pruebas y el aseguramiento de calidad se concentrarán de forma estricta en 
 
 ## 7. Cronograma de Sprints y Entregables
 
-┌─────────────────────────────────────────────────────────────┐
-│ Cronograma General del Proyecto (Ciclo de Sprints)          │
-├──────────┬──────────────────────────────────────┬───────────┤
-│ Sprint   │ Actividades Principales              │ Duración  │
-├──────────┼──────────────────────────────────────┼───────────┤
-│ Sprint 0 │ Setup local, GitHub Pages y Actions  │ 1 Semana  │
-│ Sprint 1 │ Análisis de módulos y Backlog inicial│ 2 Semanas │
-│ Sprint 2 │ Diseño de Casos de Prueba Unitarios  │ 2 Semanas │
-│ Sprint 3 │ Ejecución de Pruebas Unitarias Core  │ 2 Semanas │
-│ Sprint 4 │ Pruebas de Integración de la API     │ 2 Semanas │
-│ Sprint 5 │ Automatización final CI/CD (QA)      │ 2 Semanas │
-│ Sprint 6 │ Cierre de Cobertura y Métricas       │ 2 Semanas │
-│ Sprint 7 │ Sustentación y Documentación Final   │ 1 Semana  │
-└──────────┴──────────────────────────────────────┴───────────┘
-
-### Detalle de Entregables de la Fase Inicial
-
-* **Entregables del Sprint 0:** Repositorio base clonado con éxito, entorno de desarrollo local (DEV) documentado en la Wiki, flujo inicial de GitHub Actions configurado para detectar la ejecución de pruebas, y publicación de este sitio web institucional en GitHub Pages.
-* **Entregables del Sprint 1:** Historias de usuario completamente mapeadas con sus respectivos criterios de aceptación integradas en GitHub Issues, asignación formal de tareas y establecimiento de la línea base de cobertura del código original.
-
----
+Por completar--
 
 ## 8. Estructura de Entornos y Flujo de Trabajo
 
