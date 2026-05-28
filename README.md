@@ -62,14 +62,6 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 
 - Windows.
 
-### Software y componentes
-
-El sistema utiliza las siguientes tecnologías:
-
-- Backend: Django.
-- Frontend: React.
-- Base de datos: PostgreSQL.
-
 
 ## Variables y puertos
 
