@@ -1,4 +1,16 @@
+<div align="center">
+  <img src="logo-machaca.png" alt="Logo del Equipo" width="200"/>
+  <h1>Equipo La Machaca - QA Team</h1>
+</div>
+
 # 🩺 Proyecto Healthchecks - Equipo de QA
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white" />
+  <img src="https://img.shields.io/badge/Licencia-BSD--3-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Meta_de_Cobertura-85%25-success?style=for-the-badge" />
+</div>
 
 **Universidad Nacional de San Agustín - Ingeniería de Sistemas**
 
