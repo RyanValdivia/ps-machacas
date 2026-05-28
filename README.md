@@ -1,128 +1,141 @@
-<div align="center">
-  <img src="docs/logo_machaca.png" alt="Logo La Machaca" width="320" />
-  <h1>Proyecto Healthchecks</h1>
-  <p><strong>QA Team: La Machaca</strong></p>
-  <p>
-    <a href="https://github.com/healthchecks/healthchecks/actions/workflows/tests.yml">
-      <img src="https://github.com/healthchecks/healthchecks/actions/workflows/tests.yml/badge.svg" alt="Tests" />
-    </a>
-    <a href="https://coveralls.io/github/healthchecks/healthchecks?branch=master">
-      <img src="https://coveralls.io/repos/healthchecks/healthchecks/badge.svg?branch=master&service=github" alt="Coverage Status" />
-    </a>
-    <a href="https://github.com/healthchecks/healthchecks/blob/master/LICENSE">
-      <img src="https://img.shields.io/badge/license-BSD%203--Clause-blue.svg" alt="License: BSD-3-Clause" />
-    </a>
-  </p>
-</div>
+# RegistraMe
 
-Repositorio del proyecto final del curso **Pruebas de Software** (UNSA), enfocado en aseguramiento de calidad sobre el repositorio oficial de **Healthchecks**.
+Sistema de gestión para óptica con arquitectura **backend + frontend + desktop**:
 
-## Informacion institucional
+- `backend/`: API REST en Django
+- `frontend/`: interfaz React + Vite + Tailwind
+- `frontend/src-tauri/`: empaquetado desktop con Tauri (Windows)
 
-- **Universidad:** Universidad Nacional de San Agustin (UNSA)
-- **Escuela:** Ingenieria de Sistemas
-- **Curso:** Pruebas de Software
-- **Docente:** Mg. Robert E. Arisaca
-- **Ubicacion:** Arequipa, Peru
+## Stack
 
-## Integrantes
+- Backend: Python, Django, Django REST Framework, JWT, PostgreSQL
+- Frontend: React 19, TypeScript, Vite, TailwindCSS
+- Desktop: Tauri 2 (Rust), backend Django embebido, PostgreSQL embebido
 
-- Ajra Huacso, Jeans Anthony
-- Garambel Marin, Fernando Miguel
-- Hancco Mullisaca, Sergio Danilo
-- Huacani Jara, Denise Andrea
-- Luque Condori, Luis Guillermo
-- Pacheco Palo, Fabiana Francinet
-- Valdivia Segovia, Ryan Fabian
+## Estructura del repositorio
 
-## 1. Introduccion
+```text
+.
+├─ backend/
+│  ├─ registrame/          # settings y urls del proyecto Django
+│  ├─ users/               # auth, usuarios, roles
+│  ├─ products/            # productos y configuración de lunas
+│  ├─ sales/               # ventas e impresión
+│  ├─ cash/                # cajas y aperturas/cierres
+│  ├─ clients/             # clientes y recetas
+│  ├─ categories/          # categorías
+│  ├─ suppliers/           # proveedores
+│  ├─ opticalCenter/       # configuración de óptica
+│  ├─ external_services/   # proxys/integraciones
+│  └─ sequences/           # secuencias/correlativos
+├─ frontend/
+│  ├─ src/                 # aplicación React
+│  └─ src-tauri/           # configuración y runtime Tauri
+└─ docs/                   # documentación del proyecto
+```
 
-Este proyecto organiza la estrategia de QA del equipo **La Machaca** para validar calidad, estabilidad y trazabilidad sobre Healthchecks. El trabajo se ejecuta con enfoque agil, evidencia automatizada y seguimiento por sprint.
+## Requisitos
 
-El flujo del proyecto se apoya en GitHub Projects, Issues, Actions, Pages y Wiki para mantener control de backlog, ejecucion de pruebas, cobertura y documentacion tecnica.
+- Python 3.11+
+- Node.js 20+
+- npm 10+
+- PostgreSQL (para modo backend/frontend web)
+- Rust toolchain (solo para Tauri)
 
-## 2. Definicion del proyecto
+## Variables y puertos
 
-### 2.1 Proyecto elegido
+Valores usados en el código por defecto:
 
-- **Proyecto base:** Healthchecks
-- **Repositorio fuente:** `https://github.com/healthchecks/healthchecks`
-- **Stack principal:** Python, Django, Docker, PostgreSQL/MySQL/MariaDB
-- **Dominio:** monitoreo de cron jobs y alertas por fallas operativas
+- API Django: `http://localhost:8000`
+- Frontend Vite: `http://localhost:5173`
+- PostgreSQL: `127.0.0.1:5433`
+- Frontend usa `VITE_API_URL` (si no existe, usa `http://localhost:8000/api`)
 
-### 2.2 Justificacion
+Variables de base de datos (backend):
 
-Healthchecks cumple con los criterios del curso para trabajo QA:
+- `DB_ENGINE` (default: `django.db.backends.postgresql`)
+- `DB_NAME` (default: `registrame_db`)
+- `DB_USER` (default: `postgres`)
+- `DB_PASSWORD` (default: vacío)
+- `DB_HOST` (default: `127.0.0.1`)
+- `DB_PORT` (default: `5433`)
 
-- arquitectura real y modular,
-- buena base para pruebas unitarias e integracion,
-- cobertura inicial verificable para plantear mejora objetiva,
-- entorno adecuado para automatizacion CI/CD.
+## Levantar en modo web (backend + frontend)
 
-## 3. Objetivos
+### 1) Backend
 
-### Objetivo general
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8000
+```
 
-Disenar e implementar una estrategia agil de aseguramiento de calidad para Healthchecks, con trazabilidad completa y automatizacion de pruebas.
+Opcional: crear superusuario
 
-### Objetivos especificos
+```powershell
+python manage.py createsuperuser
+```
 
-- Estandarizar un entorno DEV reproducible para todo el equipo.
-- Definir flujo de ramas DEV -> QA -> MAIN.
-- Gestionar historias y defectos con GitHub Issues.
-- Automatizar validaciones con GitHub Actions.
-- Ejecutar pruebas unitarias e integracion.
-- Medir y documentar cobertura, defectos y evidencias.
-- Publicar documentacion en GitHub Pages/Wiki.
+### 2) Frontend
 
-## 4. Metodologia de trabajo
+En otra terminal:
 
-Se aplica **Scrum** con sprints cortos, revision continua y entregables incrementales.
+```powershell
+cd frontend
+npm install
+npm run dev
+```
 
-### Herramientas de gestion
+## Levantar app desktop (Tauri)
 
-- **Git:** versionado y estrategia de ramas.
-- **GitHub Projects:** tablero de trabajo.
-- **GitHub Issues:** backlog, tareas y bugs.
-- **GitHub Actions:** pipelines de testing.
-- **GitHub Pages:** documentacion publica.
-- **GitHub Wiki:** documentacion tecnica interna.
+La app Tauri está preparada para iniciar PostgreSQL y Django automáticamente usando binarios en `frontend/src-tauri/binaries/`.
 
-## 5. Roles y responsabilidades
+```powershell
+cd frontend
+npm install
+npm run tauri dev
+```
 
-- **Test Lead:** Valdivia Segovia, Ryan Fabian; Ajra Huacso, Jeans Anthony
-- **Test Analyst:** Luque Condori, Luis Guillermo
-- **Test Architect:** Garambel Marin, Fernando Miguel; Hancco Mullisaca, Sergio Danilo
-- **Test Designer:** Huacani Jara, Denise Andrea; Pacheco Palo, Fabiana Francinet
+Notas:
 
-## 6. Plan del proyecto y alcance
+- En desarrollo, Tauri usa `npm run dev` para el frontend (`tauri.conf.json`).
+- En primera ejecución puede tardar más por inicialización/migraciones.
+- El backend embebido crea admin por defecto: `admin@registrame.com` / `admin123` (según `backend/run_server.py`).
 
-### Alcance funcional
+## API (resumen)
 
-- Autenticacion y gestion de usuarios.
-- Procesamiento de pings y validacion de tiempos esperados.
-- Integraciones de alertas y notificaciones.
-- API para gestion remota de checks.
+Prefijo base: `/api/`
 
-### Fuera de alcance
+- `categories/`
+- `products/`
+- `clients/`
+- `user/`
+- `sales/`
+- `suppliers/`
+- `cash/`
+- `proxy/`
+- `opticalcenter/`
+- `lunas/`
 
-- Pentesting avanzado.
-- Despliegue productivo comercial.
-- Pruebas de carga masiva a gran escala.
+Autenticación JWT:
 
-## 7. Cronograma de sprints
+- `POST /api/user/token/`
+- `POST /api/user/token/refresh/`
 
-- **Sprint 0:** seleccion/configuracion del proyecto y entorno.
-- **Sprint 1:** analisis funcional y backlog.
-- **Sprint 2:** diseno de pruebas unitarias.
-- **Sprint 3:** implementacion y ejecucion de unit tests.
-- **Sprint 4:** pruebas de integracion.
-- **Sprint 5:** CI/CD en GitHub Actions.
-- **Sprint 6:** metricas, cobertura y defectos.
-- **Sprint 7:** cierre, documentacion y presentacion.
+## Scripts útiles
 
-## 8. Estado actual
+Frontend (`frontend/package.json`):
 
-- `Work in Progress`: plan de pruebas detallado.
-- `Work in Progress`: matriz de trazabilidad (historias-casos-defectos).
-- `Work in Progress`: consolidacion final de evidencias y cobertura.
+- `npm run dev`
+- `npm run build`
+- `npm run build:check`
+- `npm run lint`
+- `npm run preview`
+- `npm run tauri`
+
+## Estado de documentación previa
+
+El `README.md` anterior correspondía a otro proyecto. Este archivo refleja la estructura y ejecución reales del repositorio actual clonado.
