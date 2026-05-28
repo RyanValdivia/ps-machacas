@@ -1,0 +1,141 @@
+/* Estilos específicos para la tabla de inventario */
+
+/* En pantallas pequeñas (hasta 1535px / 1440x900) */
+@media (max-width: 1535px) {
+  .inventory-table table {
+    min-width: 1000px;
+    table-layout: fixed; /* Cambiar a fixed para controlar anchos */
+  }
+
+  /* Controlar ancho de columna descripción */
+  .inventory-table th:nth-child(2),
+  .inventory-table td:nth-child(2) {
+    width: 200px;  /* Ancho fijo para descripción */
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Código */
+  .inventory-table th:nth-child(1),
+  .inventory-table td:nth-child(1) {
+    width: 80px;
+    max-width: 80px;
+  }
+
+  /* Marca */
+  .inventory-table th:nth-child(3),
+  .inventory-table td:nth-child(3) {
+    width: 100px;
+    max-width: 100px;
+  }
+
+  /* Material */
+  .inventory-table th:nth-child(4),
+  .inventory-table td:nth-child(4) {
+    width: 80px;
+    max-width: 80px;
+  }
+
+  /* Color */
+  .inventory-table th:nth-child(5),
+  .inventory-table td:nth-child(5) {
+    width: 80px;
+    max-width: 80px;
+  }
+
+  /* Modelo-Talla */
+  .inventory-table th:nth-child(6),
+  .inventory-table td:nth-child(6) {
+    width: 100px;
+    max-width: 100px;
+  }
+
+  /* Género */
+  .inventory-table th:nth-child(7),
+  .inventory-table td:nth-child(7) {
+    width: 80px;
+    max-width: 80px;
+  }
+
+  /* Stock */
+  .inventory-table th:nth-child(8),
+  .inventory-table td:nth-child(8) {
+    width: 90px;
+    max-width: 90px;
+  }
+
+  /* Precio Venta */
+  .inventory-table th:nth-child(9),
+  .inventory-table td:nth-child(9) {
+    width: 100px;
+    max-width: 100px;
+  }
+
+  /* Acciones */
+  .inventory-table th:nth-child(10),
+  .inventory-table td:nth-child(10) {
+    width: 110px;
+    max-width: 110px;
+  }
+}
+
+/* En pantallas grandes (1536px+ / 1920+) */
+@media (min-width: 1536px) {
+  .inventory-table table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Distribución de columnas en pantallas grandes */
+  .inventory-table th:nth-child(1),
+  .inventory-table td:nth-child(1) {
+    width: 8%;  /* Código */
+  }
+
+  .inventory-table th:nth-child(2),
+  .inventory-table td:nth-child(2) {
+    width: 25%; /* Descripción (la más grande) */
+  }
+
+  .inventory-table th:nth-child(3),
+  .inventory-table td:nth-child(3) {
+    width: 10%; /* Marca */
+  }
+
+  .inventory-table th:nth-child(4),
+  .inventory-table td:nth-child(4) {
+    width: 8%;  /* Material */
+  }
+
+  .inventory-table th:nth-child(5),
+  .inventory-table td:nth-child(5) {
+    width: 8%;  /* Color */
+  }
+
+  .inventory-table th:nth-child(6),
+  .inventory-table td:nth-child(6) {
+    width: 10%; /* Modelo-Talla */
+  }
+
+  .inventory-table th:nth-child(7),
+  .inventory-table td:nth-child(7) {
+    width: 8%;  /* Género */
+  }
+
+  .inventory-table th:nth-child(8),
+  .inventory-table td:nth-child(8) {
+    width: 8%;  /* Stock */
+  }
+
+  .inventory-table th:nth-child(9),
+  .inventory-table td:nth-child(9) {
+    width: 10%; /* Precio Venta */
+  }
+
+  .inventory-table th:nth-child(10),
+  .inventory-table td:nth-child(10) {
+    width: 5%;  /* Acciones */
+  }
+}
