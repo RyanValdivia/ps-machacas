@@ -1,6 +1,6 @@
 <div style="text-align: center; background: linear-gradient(135deg, #F0FDF4 0%, #E0F2FE 100%); padding: 40px 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #E2E8F0;">
   <img src="logo_machaca.png" alt="Logo La Machaca" width="160" style="border-radius: 50%; border: 4px solid #FFFFFF; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);" />
-  <h1 style="color: #0F172A; font-size: 2.5rem; margin: 15px 0 5px 0; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Proyecto RegistreMe</h1>
+  <h1 style="color: #0F172A; font-size: 2.5rem; margin: 15px 0 5px 0; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Proyecto RegistraMe</h1>
   <p style="color: #0284C7; font-size: 1.2rem; margin: 0 0 20px 0; font-weight: 500; letter-spacing: 0.5px;">QA Engineering Team: La Machaca</p>
   
   <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
@@ -50,7 +50,7 @@
 
 ## 1. Introducción
 
-El presente plan de trabajo describe la organización, metodología, roles y lineamientos técnicos contemplados por el **Equipo La Machaca** para la ejecución de pruebas de software, aseguramiento de la calidad y automatización aplicados al sistema de gestión de óptica **RegistreMe**, desarrollado íntegramente por el propio equipo.
+El presente plan de trabajo describe la organización, metodología, roles y lineamientos técnicos contemplados por el **Equipo La Machaca** para la ejecución de pruebas de software, aseguramiento de la calidad y automatización aplicados al sistema de gestión de óptica **RegistraMe**, desarrollado íntegramente por el propio equipo.
 
 El propósito fundamental de este proyecto es establecer una estrategia de QA orientada a prácticas ágiles, garantizando la trazabilidad desde los requerimientos iniciales hasta la automatización de la evidencia. El flujo completo se apoya en el ecosistema avanzado de GitHub: *GitHub Projects* para la gestión ágil, *GitHub Issues* para el backlog de historias de usuario, *GitHub Actions* para la ejecución continua de pipelines de testing, y *GitHub Pages* para la centralización de la documentación y presentación formal del producto.
 
@@ -60,7 +60,7 @@ El propósito fundamental de este proyecto es establecer una estrategia de QA or
 
 ### 2.1. Descripción del Producto de Software Seleccionado
 
-**RegistreMe** es un sistema de escritorio para la **gestión integral de ópticas y tiendas de lentes**, desarrollado con una arquitectura moderna cliente-servidor. La aplicación permite administrar el ciclo completo de una óptica: desde el inventario de monturas y lunas hasta el punto de venta con comprobantes, gestión de clientes, control de caja y reportes por sucursal.
+**RegistraMe** es un sistema de escritorio para la **gestión integral de ópticas y tiendas de lentes**, desarrollado con una arquitectura moderna cliente-servidor. La aplicación permite administrar el ciclo completo de una óptica: desde el inventario de monturas y lunas hasta el punto de venta con comprobantes, gestión de clientes, control de caja y reportes por sucursal.
 
 El sistema está orientado a negocios del sector óptico que requieren control de inventario especializado (monturas por material, talla y marca; lunas personalizadas por tipo y características como Blue Block o fotocromático), así como trazabilidad completa de ventas con estados de pago y de entrega de pedidos.
 
@@ -78,7 +78,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">A. Dashboard Gerencial Principal</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Panel de control en tiempo real con KPIs de ventas, ganancias, egresos y productos activos. Incluye ranking de clientes más frecuentes y gráfico de ventas totales por período.</p>
   <div style="text-align: center;">
-    <img src="Dashboard_Principal.png" alt="Dashboard Principal de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Dashboard_Principal.png" alt="Dashboard Principal de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -86,7 +86,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">B. Punto de Venta</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Interfaz de venta rápida con búsqueda de productos, registro de datos del cliente, selección de tipo de comprobante (Boleta/Factura), múltiples métodos de pago (Efectivo, Yape, Visa, Transferencia, Plin, Mixto), gestión de adelantos y procesamiento de la venta con generación automática de nota de venta.</p>
   <div style="text-align: center;">
-    <img src="Punto_Venta.png" alt="Punto de Venta de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Punto_Venta.png" alt="Punto de Venta de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -94,7 +94,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">C. Inventario Central</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Módulo de gestión de productos globales disponibles para todas las sucursales. Muestra código, descripción, stock central, categoría, material, público objetivo, precio de venta, margen de ganancia y estado. Permite agregar nuevos productos con generación automática de código y descripción.</p>
   <div style="text-align: center;">
-    <img src="Inventario.png" alt="Inventario Central de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Inventario.png" alt="Inventario Central de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -102,7 +102,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">D. Clientes y Prescripciones</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Módulo de gestión de clientes y sus recetas oftalmológicas. Permite registrar clientes con DNI, nombre completo, teléfono, edad y fecha de nacimiento, con búsqueda y filtros integrados.</p>
   <div style="text-align: center;">
-    <img src="Clientes.png" alt="Clientes y Prescripciones de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Clientes.png" alt="Clientes y Prescripciones de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -110,7 +110,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">E. Reportes Analíticos</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Panel de análisis de ventas, rentabilidad y desempeño. Muestra ingresos totales, ganancias, costos y ticket promedio, con vistas por día, mes y año. Incluye métricas de desempeño por vendedor, distribución por caja, ventas por vendedor y ventas por caja.</p>
   <div style="text-align: center;">
-    <img src="Reportes.png" alt="Reportes Analíticos de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Reportes.png" alt="Reportes Analíticos de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -118,7 +118,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
   <p style="font-weight: 600; color: #1E293B; margin-top: 0; margin-bottom: 10px;">F. Configuración y Administración de Acceso</p>
   <p style="font-size: 0.9rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">Panel de administración con gestión de usuarios y permisos por rol, configuración de sucursales, cajas registradoras y proveedores. Permite agregar usuarios con roles como Gerente, Supervisor, Cajero, Vendedor y Optómetra.</p>
   <div style="text-align: center;">
-    <img src="Ajustes.png" alt="Configuración de RegistreMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
+    <img src="Ajustes.png" alt="Configuración de RegistraMe" style="max-width: 100%; border-radius: 6px; border: 1px solid #E2E8F0;" />
   </div>
 </div>
 
@@ -153,7 +153,7 @@ El sistema está orientado a negocios del sector óptico que requieren control d
 
 ### 2.3. Módulos del Sistema
 
-El backend de **RegistreMe** está organizado en aplicaciones Django independientes, cada una con responsabilidad única dentro del dominio de la óptica:
+El backend de **RegistraMe** está organizado en aplicaciones Django independientes, cada una con responsabilidad única dentro del dominio de la óptica:
 
 <table style="width: 100%; border-collapse: collapse; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 30px;">
   <thead>
@@ -208,7 +208,7 @@ El backend de **RegistreMe** está organizado en aplicaciones Django independien
 
 ### 2.4. Justificación de la Elección
 
-La elección de **RegistreMe** se fundamenta en su idoneidad para el trabajo de QA del curso:
+La elección de **RegistraMe** se fundamenta en su idoneidad para el trabajo de QA del curso:
 
 * **Dominio real y representativo:** Sistema orientado al sector empresarial de ópticas, con lógica de negocio compleja y validaciones críticas en modelos.
 * **Arquitectura modular:** Backend Django separado en 10 apps independientes que facilita la cobertura por capas y el aislamiento de pruebas.
@@ -219,7 +219,7 @@ La elección de **RegistreMe** se fundamenta en su idoneidad para el trabajo de 
 
 ## 3. Objetivos del Proyecto
 
-* **Objetivo General:** Diseñar, implementar y automatizar una estrategia de aseguramiento de calidad ágil para RegistreMe, incorporando pipelines de integración continua, trazabilidad absoluta de defectos y una cobertura final demostrable del **85%**.
+* **Objetivo General:** Diseñar, implementar y automatizar una estrategia de aseguramiento de calidad ágil para RegistraMe, incorporando pipelines de integración continua, trazabilidad absoluta de defectos y una cobertura final demostrable del **85%**.
 * **Objetivos Específicos:**
   * Configurar un entorno de desarrollo local (DEV) homogéneo y reproducible para todos los miembros del equipo.
   * Definir formalmente el flujo de ramas de Git para la transición de código segura entre los entornos de `DEV` y `QA`.
@@ -283,7 +283,7 @@ Se utiliza un enfoque ágil basado en **Scrum**. El trabajo se divide en iteraci
 
 ## 6. Plan del Proyecto y Alcance
 
-* **Alcance Funcional:** Las pruebas y el aseguramiento de calidad se concentrarán de forma estricta en los siguientes módulos del backend de RegistreMe:
+* **Alcance Funcional:** Las pruebas y el aseguramiento de calidad se concentrarán de forma estricta en los siguientes módulos del backend de RegistraMe:
   * Módulo `products`: validaciones de modelos de monturas y accesorios, generación automática de códigos y descripciones, lógica de lunas personalizadas.
   * Módulo `sales`: flujo completo de venta (creación, pago, anulación), cálculo de totales, estados de pago y de pedido, generación de comprobantes.
   * Módulo `clients`: gestión de clientes con validaciones de documento de identidad.
