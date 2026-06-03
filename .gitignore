@@ -116,3 +116,6 @@ postgres.log
 backend/dist/
 backend/build/
 *.spec
+
+# CodeGraph local index
+.codegraph/
