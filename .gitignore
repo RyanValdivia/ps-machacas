@@ -117,5 +117,3 @@ backend/dist/
 backend/build/
 *.spec
 
-# CodeGraph local index
-.codegraph/
