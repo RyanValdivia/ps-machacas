@@ -16,7 +16,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
     try {
       const response = await api.post('/user/token/', {
         usuNom,
-        password,
+        usuContra: password,
       });
 
       const { access, refresh } = response.data;
