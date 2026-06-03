@@ -190,3 +190,5 @@ Notas:
 - El backend usa `gunicorn`, aplica migraciones y ejecuta `collectstatic` al iniciar.
 - En Docker se crea automáticamente un usuario admin de prueba: `admin@registrame.com` / `admin123`.
 - `infra/scripts/migrate.sh` y `infra/scripts/migrate.ps1` quedan como accesos directos si necesitas correr migraciones manualmente.
+
+Para el flujo de despliegue en VPS con GitHub Actions y Traefik, revisa [infra/DEPLOYMENT.md](infra/DEPLOYMENT.md).
