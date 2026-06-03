@@ -32,7 +32,7 @@
     </tr>
     <tr>
       <td style="padding: 6px 0; color: #64748B; font-weight: 500;">Sustentación:</td>
-      <td style="padding: 6px 0; color: #334155;">Primer Hito — Sprint 1 (28/29 de Mayo de 2026)</td>
+      <td style="padding: 6px 0; color: #334155;">Segundo Hito — Sprint 2 (10 de Junio de 2026)</td>
     </tr>
   </table>
   
@@ -315,16 +315,31 @@ Se utiliza un enfoque ágil basado en **Scrum**. El trabajo se divide en iteraci
       <td style="padding: 12px; color: #64748B;">Repositorio base configurado, GitHub Pages activo y Plan de Trabajo estructurado.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0;">
-      <td style="padding: 12px; font-weight: 600; color: #0284C7;">Sprint 2<br><small style="color: #0284C7; font-weight: 600;">En curso</small></td>
+      <td style="padding: 12px; font-weight: 600; color: #0284C7;">Sprint 2<br><small style="color: #D97706; font-weight: 600;">⚡ Hito 2 — En curso</small></td>
       <td style="padding: 12px;">28/05 - 10/06</td>
-      <td style="padding: 12px;">Fase de Análisis y Diseño (Semanas 1 y 2 del Plan de Pruebas). Elaboración del inventario de módulos críticos enfocados en productos, clientes y usuarios. Identificación de riesgos técnicos, definición de criterios de calidad y modelado detallado de casos de prueba con sus respectivos datos de prueba (fixtures) y matriz de trazabilidad.</td>
-      <td style="padding: 12px;">Backlog de historias de usuario en GitHub Issues, matriz de casos de prueba estructurada y datos/fixtures de prueba definidos.</td>
+      <td style="padding: 12px;">
+        <strong style="color: #1E293B;">Entregables del Hito 2 (fecha límite: 10/06/2026):</strong>
+        <ol style="margin: 8px 0 0 0; padding-left: 18px; line-height: 1.7;">
+          <li><strong>Plan de Pruebas Unitarias:</strong> Documento focalizado exclusivamente en pruebas unitarias/funcionales siguiendo la plantilla PLANTILLA-Plan_de_Pruebas. Define alcance, criterios de entrada/salida, estrategia de cobertura (objetivo ≥ 85%) y responsables por módulo.</li>
+          <li><strong>Implementación de Pruebas Unitarias (PU):</strong> Codificación de la suite completa de pruebas unitarias en <code>pytest</code> sobre el backend Django para los módulos <code>products</code>, <code>sales</code>, <code>clients</code>, <code>users</code> y <code>cash</code>, alcanzando una cobertura mínima del 85%.</li>
+          <li><strong>Informe de Casos de Pruebas Funcionales (Caja Negra):</strong> Diseño y ejecución manual de casos de prueba funcionales aplicando técnicas de caja negra (Partición de Equivalencias, Análisis de Valores Límite, Tablas de Decisión) sobre los requisitos funcionales del sistema en el entorno QA.</li>
+          <li><strong>Plan de Pruebas de Integración:</strong> Documento de planificación (sin ejecución en este hito) enfocado en las interfaces entre módulos del backend: <code>sales↔products</code>, <code>sales↔cash</code>, <code>sales↔clients</code> y la autenticación JWT del módulo <code>users</code>.</li>
+        </ol>
+      </td>
+      <td style="padding: 12px;">
+        <ul style="margin: 0; padding-left: 16px; line-height: 1.7;">
+          <li>Plan de Pruebas Unitarias</li>
+          <li>Suite PU con ≥ 85% cobertura</li>
+          <li>Informe de Casos Funcionales (Caja Negra)</li>
+          <li>Plan de Pruebas de Integración</li>
+        </ul>
+      </td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;">
-      <td style="padding: 12px; font-weight: 600;">Sprint 3<br><small style="color: #64748B;">Planificado</small></td>
+      <td style="padding: 12px; font-weight: 600;">Sprint 3<br><small style="color: #64748B;">Planificado — Hito 3</small></td>
       <td style="padding: 12px;">11/06 - 24/06</td>
-      <td style="padding: 12px;">Fase de Implementación de Código de Pruebas (Semanas 3 y 4 del Plan de Pruebas). Programación y ajuste de la suite de pruebas unitarias y de integración sobre el backend (modelos, servicios y API REST) con énfasis en los flujos lógicos de ventas y caja. Desarrollo y acoplamiento en paralelo de las pruebas de componentes, servicios y rutas en el frontend.</td>
-      <td style="padding: 12px;">Suite de pruebas automatizadas de backend y frontend implementada en el entorno local de desarrollo.</td>
+      <td style="padding: 12px;">Fase de Ejecución de Pruebas de Integración (Hito 3). Ejecución efectiva del Plan de Integración elaborado en el Sprint 2, cubriendo las interfaces entre módulos del backend. Refinamiento de la suite de pruebas unitarias y resolución de defectos detectados. Configuración del pipeline de Integración Continua (GitHub Actions) para ejecución automática de la suite completa ante cada Pull Request hacia la rama <code>qa</code>.</td>
+      <td style="padding: 12px;">Pruebas de integración ejecutadas, pipeline CI/CD configurado y reporte de defectos en GitHub Issues.</td>
     </tr>
     <tr style="border-bottom: 1px solid #E2E8F0;">
       <td style="padding: 12px; font-weight: 600;">Sprint 4<br><small style="color: #64748B;">Planificado</small></td>
@@ -337,11 +352,12 @@ Se utiliza un enfoque ágil basado en **Scrum**. El trabajo se divide en iteraci
 
 ### Justificación de la Distribución del Cronograma
 
-La estructuración del cronograma de trabajo responde de manera estratégica a los principios de la ingeniería de pruebas y la gestión ágil de proyectos:
+La estructuración del cronograma de trabajo responde de manera estratégica a los principios de la ingeniería de pruebas y la gestión ágil de proyectos, alineada directamente con los tres hitos de entrega del curso:
 
-* **Correspondencia de Ciclos (Scrum-Testing Mapping):** La distribución agrupa de manera exacta un plan técnico de pruebas de 6 semanas en 3 Sprints de ejecución activa de 14 días cada uno. El Sprint 1 actuó como la fase de preparación necesaria para asegurar que el repositorio, el stack y las herramientas automáticas estuvieran listas y validadas antes de iniciar el ciclo formal de pruebas de software.
-* **Cohesión de Fases por Iteración:** Cada Sprint posee un objetivo temático único para el equipo de QA, evitando la dispersión de esfuerzos. El Sprint 2 une el Análisis y el Diseño para entender el sistema de manera profunda antes de codificar; el Sprint 3 se concentra netamente en la construcción simultánea de pruebas en el backend y frontend; y el Sprint 4 se dedica a la certificación automatizada en el pipeline de Integración Continua.
-* **Principio de Detección Temprana de Defectos:** Modelar las historias de usuario, los criterios de aceptación y los fixtures de datos en el Sprint 2, previo a la ejecución masiva de los Sprints siguientes, garantiza que el equipo cuente con una guía clara de trazabilidad. Esto reduce los costos de corrección de errores y asegura que las automatizaciones en GitHub Actions se configuren sobre una base de pruebas previamente validada a nivel local.
+* **Hito 1 → Sprint 1 (completado):** El Sprint 1 actuó como la fase de preparación: configuración del repositorio, GitHub Pages activo y Plan de Trabajo estructurado. Sustentado el 28/29 de mayo de 2026.
+* **Hito 2 → Sprint 2 (en curso, entrega 10/06):** El Sprint 2 concentra los cuatro entregables del Hito 2 — Plan de Pruebas Unitarias, implementación de la suite PU con cobertura ≥ 85%, Informe de Casos de Prueba Funcionales (caja negra ejecutados manualmente en entorno QA) y Plan de Pruebas de Integración. La separación en dos tipos de prueba respeta la distinción metodológica del curso: las unitarias se desarrollan en el entorno **DEV** por cada integrante con acceso al código fuente, mientras las de caja negra se ejecutan en un **entorno QA unificado** sin acceso al código.
+* **Hito 3 → Sprint 3 (planificado, 11/06 – 24/06):** Se ejecutará el Plan de Pruebas de Integración elaborado en el Sprint 2, junto con el pipeline de CI/CD automatizado en GitHub Actions y la consolidación de métricas finales de cobertura.
+* **Principio de Detección Temprana de Defectos:** Diseñar los casos de caja negra y el plan de integración en el Sprint 2, antes de su ejecución masiva, garantiza trazabilidad completa y reduce el costo de corrección de errores en las fases posteriores.
 
 ---
 
