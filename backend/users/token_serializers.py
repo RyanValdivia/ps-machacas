@@ -2,6 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from .models import User
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     # Cambiar nombres de campos para que coincidan con tu modelo
@@ -11,16 +12,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         super().__init__(*args, **kwargs)
         # Reemplazar el campo 'username' por 'usuNom'
         self.fields[self.username_field] = serializers.CharField()
-        self.fields['usuContra'] = serializers.CharField(write_only=True)
+        self.fields['usuContra'] = serializers.CharField(write_only=True, required=False)
+        self.fields['password'] = serializers.CharField(write_only=True, required=False)
         # Eliminar campos por defecto de JWT
         self.fields.pop('username', None)
-        self.fields.pop('password', None)
     
     def validate(self, attrs):
         # Obtener credenciales con los nombres correctos
         usuNom = attrs.get('usuNom')
-        usuContra = attrs.get('usuContra')
-        
+        usuContra = attrs.get('usuContra') or attrs.get('password')
+        user = None
+
         if usuNom and usuContra:
             # Autenticar usando Django authenticate
             user = authenticate(
@@ -28,6 +30,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 username=usuNom,  # Django authenticate usa 'username' internamente
                 password=usuContra
             )
+
+            if not user:
+                user_by_email = User.objects.filter(usuEmail__iexact=usuNom).first()
+                if user_by_email and user_by_email.check_password(usuContra):
+                    user = user_by_email
             
             if not user:
                 raise serializers.ValidationError(
