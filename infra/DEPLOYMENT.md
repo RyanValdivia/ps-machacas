@@ -14,6 +14,7 @@ Crea `infra/.env.prod` en el VPS a partir de `infra/.env.prod.example`.
 Variables clave:
 
 - `GHCR_OWNER`: tu usuario u organización de GitHub
+  - debe coincidir con el owner del repo en minúsculas; en tu caso `ryanvaldivia`
 - `TRAEFIK_HOST`: por ejemplo `develop.tudominio.com`
 - `TRAEFIK_NETWORK`: red externa donde vive Traefik, en tu caso parece `traefik_proxy`
 - `TRAEFIK_CERT_RESOLVER`: nombre del resolver ACME configurado en Traefik, en tu caso parece `cloudflare`
