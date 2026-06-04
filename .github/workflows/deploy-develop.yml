@@ -1,0 +1,77 @@
+name: Build and deploy develop
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize GHCR owner
+        id: normalize
+        shell: bash
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-backend:develop
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-backend:${{ github.sha }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-frontend:develop
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-frontend:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          envs: GHCR_USERNAME,GHCR_TOKEN
+          script: |
+            set -e
+            cd "${{ secrets.VPS_APP_DIR }}"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml pull
+            docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
