@@ -36,6 +36,7 @@ El frontend ya queda publicado por labels en `infra/docker-compose.prod.yml`:
 - `Host(\`develop.tudominio.com\`)`
 - `entrypoints=websecure`
 - `tls.certresolver=cloudflare`
+- `traefik.docker.network=traefik_proxy`
 
 ## 4) Despliegue manual en el VPS
 
