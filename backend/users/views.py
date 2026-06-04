@@ -24,6 +24,11 @@ def login_user(request):
     usuContra = request.data.get('usuContra')
 
     user = authenticate(username=usuNom, password=usuContra)
+    if user is None and usuNom and usuContra:
+        user_by_email = User.objects.filter(usuEmail__iexact=usuNom).first()
+        if user_by_email and user_by_email.check_password(usuContra):
+            user = user_by_email
+
     if user is not None:
         login(request, user)
         serializer = UserSerializer(user)

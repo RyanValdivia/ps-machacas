@@ -6,6 +6,10 @@ on:
       - develop
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: develop
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,7 +32,7 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,7 +43,7 @@ jobs:
           file: infra/docker/backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-backend:develop
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-backend:${{ env.IMAGE_TAG }}
             ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-backend:${{ github.sha }}
 
       - name: Build and push frontend
@@ -49,7 +53,7 @@ jobs:
           file: infra/docker/frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-frontend:develop
+            ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-frontend:${{ env.IMAGE_TAG }}
             ghcr.io/${{ steps.normalize.outputs.owner }}/registrame-frontend:${{ github.sha }}
 
   deploy:

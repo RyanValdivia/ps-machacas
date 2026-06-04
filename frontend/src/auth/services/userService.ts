@@ -3,7 +3,7 @@ import type { User, TokenResponse } from '../types/user';
 
 export const getToken = async (usuNom: string, password: string): Promise<TokenResponse> => {
   try{
-    const response = await api.post<TokenResponse>('/user/token/', { usuNom, password });
+    const response = await api.post<TokenResponse>('/user/token/', { usuNom, usuContra: password });
     // IMPORTANTE: Guardar los tokens inmediatamente
     if (response.data.access && response.data.refresh) {
       localStorage.setItem('access', response.data.access);
