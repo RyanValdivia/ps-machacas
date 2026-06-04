@@ -8,6 +8,8 @@ Sistema de gestión para óptica con arquitectura **backend + frontend + desktop
 
 ![Logo RegistraMe](docs/logo_machaca.png)
 
+### Documentación: [PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)
+
 ## Vistas clave
 
 ![Dashboard principal](docs/Dashboard_Principal.png)
