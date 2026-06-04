@@ -15,8 +15,8 @@ Variables clave:
 
 - `GHCR_OWNER`: tu usuario u organización de GitHub
 - `TRAEFIK_HOST`: por ejemplo `develop.tudominio.com`
-- `TRAEFIK_NETWORK`: red externa donde vive Traefik
-- `TRAEFIK_CERT_RESOLVER`: nombre del resolver ACME configurado en Traefik
+- `TRAEFIK_NETWORK`: red externa donde vive Traefik, en tu caso parece `traefik_proxy`
+- `TRAEFIK_CERT_RESOLVER`: nombre del resolver ACME configurado en Traefik, en tu caso parece `cloudflare`
 
 ## 2) DNS
 
@@ -27,14 +27,14 @@ Apunta un registro `A` de `develop.tudominio.com` hacia la IP pública del VPS.
 Traefik debe tener:
 
 - entrypoint `websecure`
-- resolver ACME tipo Let’s Encrypt, por ejemplo `letsencrypt`
-- red Docker externa compartida con este stack, por ejemplo `traefik`
+- resolver ACME tipo Let’s Encrypt o Cloudflare, según tu Traefik
+- red Docker externa compartida con este stack, por ejemplo `traefik_proxy`
 
 El frontend ya queda publicado por labels en `infra/docker-compose.prod.yml`:
 
 - `Host(\`develop.tudominio.com\`)`
 - `entrypoints=websecure`
-- `tls.certresolver=letsencrypt`
+- `tls.certresolver=cloudflare`
 
 ## 4) Despliegue manual en el VPS
 
@@ -68,4 +68,3 @@ Configura estos secrets:
 Opcional:
 
 - `VPS_SSH_PORT` si no usas 22
-
