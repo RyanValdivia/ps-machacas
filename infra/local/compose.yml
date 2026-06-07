@@ -19,8 +19,8 @@ services:
 
   backend:
     build:
-      context: ..
-      dockerfile: infra/docker/backend/Dockerfile
+      context: ../..
+      dockerfile: infra/shared/docker/backend/Dockerfile
     container_name: registrame-backend
     environment:
       SECRET_KEY: ${SECRET_KEY:-django-insecure-docker-local-key}
@@ -51,8 +51,8 @@ services:
 
   frontend:
     build:
-      context: ..
-      dockerfile: infra/docker/frontend/Dockerfile
+      context: ../..
+      dockerfile: infra/shared/docker/frontend/Dockerfile
     container_name: registrame-frontend
     depends_on:
       - backend

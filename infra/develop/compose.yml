@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: registrame-db
+    container_name: registrame-dev-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-registrame_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -10,11 +10,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - registrame-internal
+      - registrame-dev-internal
 
   backend:
     image: ghcr.io/${GHCR_OWNER}/registrame-backend:${IMAGE_TAG:-develop}
-    container_name: registrame-backend
+    container_name: registrame-dev-backend
     environment:
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: ${DEBUG:-False}
@@ -39,15 +39,16 @@ services:
       - backend_media:/app/backend/media
     restart: unless-stopped
     networks:
-      - registrame-internal
+      - registrame-dev-internal
 
   frontend:
     image: ghcr.io/${GHCR_OWNER}/registrame-frontend:${IMAGE_TAG:-develop}
-    container_name: registrame-frontend
+    container_name: registrame-dev-frontend
     depends_on:
       - backend
     labels:
       - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}
       - traefik.http.routers.registrame-dev.rule=Host(`${TRAEFIK_HOST}`)
       - traefik.http.routers.registrame-dev.entrypoints=websecure
       - traefik.http.routers.registrame-dev.tls=true
@@ -55,7 +56,7 @@ services:
       - traefik.http.services.registrame-dev.loadbalancer.server.port=80
     restart: unless-stopped
     networks:
-      - registrame-internal
+      - registrame-dev-internal
       - traefik
 
 volumes:
@@ -63,7 +64,7 @@ volumes:
   backend_media:
 
 networks:
-  registrame-internal:
+  registrame-dev-internal:
     driver: bridge
   traefik:
     external: true
