@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: infra/docker/backend/Dockerfile
+          file: infra/shared/docker/backend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: infra/docker/frontend/Dockerfile
+          file: infra/shared/docker/frontend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
@@ -77,9 +77,10 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.VPS_APP_DIR }}"
+            git pull
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml pull
-            docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml up -d --remove-orphans
+            docker compose --env-file infra/develop/.env -f infra/develop/compose.yml pull
+            docker compose --env-file infra/develop/.env -f infra/develop/compose.yml up -d --remove-orphans
             docker image prune -f
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
