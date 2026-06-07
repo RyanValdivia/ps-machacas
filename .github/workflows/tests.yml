@@ -1,0 +1,35 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - develop
+      - qa
+  pull_request:
+    branches:
+      - qa
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install -r ../infra/shared/docker/backend/requirements.txt
+
+      - name: Run tests with coverage
+        run: python -m pytest --cov=. --cov-report=term-missing --cov-fail-under=25
