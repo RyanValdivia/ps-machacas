@@ -9,14 +9,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY infra/docker/backend/requirements.txt /tmp/requirements.txt
+COPY infra/shared/docker/backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY backend /app/backend
-COPY infra/docker/backend/entrypoint.sh /app/infra/docker/backend/entrypoint.sh
-RUN chmod +x /app/infra/docker/backend/entrypoint.sh
+COPY infra/shared/docker/backend/entrypoint.sh /app/infra/shared/docker/backend/entrypoint.sh
+RUN chmod +x /app/infra/shared/docker/backend/entrypoint.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/infra/docker/backend/entrypoint.sh"]
+ENTRYPOINT ["/app/infra/shared/docker/backend/entrypoint.sh"]
