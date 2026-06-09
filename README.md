@@ -157,3 +157,38 @@ Frontend (`frontend/package.json`):
 - `npm run lint`
 - `npm run preview`
 - `npm run tauri`
+
+## Docker local
+
+La infraestructura de contenedores quedó en `infra/` para que después puedas automatizar despliegues con GitHub Actions sin rehacer la base.
+
+Archivos principales:
+
+- `infra/docker-compose.yml`
+- `infra/docker/backend/Dockerfile`
+- `infra/docker/frontend/Dockerfile`
+- `infra/docker/frontend/nginx.conf`
+- `infra/docker/backend/entrypoint.sh`
+- `infra/scripts/*.sh`
+- `infra/scripts/*.ps1`
+
+Flujo recomendado:
+
+1. Copia `infra/.env.example` a `infra/.env` y ajusta la clave secreta si vas a usarlo fuera de local.
+2. Levanta el stack con `infra/scripts/up.sh` o `infra/scripts/up.ps1`.
+3. Abre la app web en `http://localhost:8080`.
+
+Servicios expuestos:
+
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:8000`
+- PostgreSQL: `127.0.0.1:5433`
+
+Notas:
+
+- El frontend quedó preparado para usar `/api` por defecto, así que en Docker funciona detrás de Nginx sin URLs hardcodeadas.
+- El backend usa `gunicorn`, aplica migraciones y ejecuta `collectstatic` al iniciar.
+- En Docker se crea automáticamente un usuario admin de prueba: `admin@registrame.com` / `admin123`.
+- `infra/scripts/migrate.sh` y `infra/scripts/migrate.ps1` quedan como accesos directos si necesitas correr migraciones manualmente.
+
+Para el flujo de despliegue en VPS con GitHub Actions y Traefik, revisa [infra/DEPLOYMENT.md](infra/DEPLOYMENT.md).

@@ -24,12 +24,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!jgd2#0dgh#0@9z9@2ng^ey!@ky+3#wjf@h6c3ch@ya1znd8m%'
+SECRET_KEY = config(
+    'SECRET_KEY',
+    default='django-insecure-!jgd2#0dgh#0@9z9@2ng^ey!@ky+3#wjf@h6c3ch@ya1znd8m%'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in config(
+        'ALLOWED_HOSTS',
+        default='localhost,127.0.0.1,backend,frontend,0.0.0.0'
+    ).split(',')
+    if host.strip()
+]
 AUTH_USER_MODEL = 'users.User'  # 'nombre_app.nombre_modelo'
 
 # Application definition
@@ -60,6 +70,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,10 +81,25 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
+_default_cors_origins = (
+    'http://localhost:5173,'
+    'http://127.0.0.1:5173,'
+    'http://localhost:8080,'
+    'http://127.0.0.1:8080,'
+    'tauri://localhost,'
+    'http://tauri.localhost'
+)
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "tauri://localhost",
-    "http://tauri.localhost",
+    origin.strip()
+    for origin in config('CORS_ALLOWED_ORIGINS', default=_default_cors_origins).split(',')
+    if origin.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in config('CSRF_TRUSTED_ORIGINS', default=_default_cors_origins).split(',')
+    if origin.strip()
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -133,7 +159,7 @@ DATABASES = {
         'USER': config('DB_USER', default='postgres'),
         'PASSWORD': config('DB_PASSWORD', default=''),
         'HOST': config('DB_HOST', default='127.0.0.1'),
-        'PORT': config('DB_PORT', default='5433'),  # ← Cambié también el puerto de 5432 a 5433
+        'PORT': config('DB_PORT', default='5433'),
     }
 }
 
@@ -174,7 +200,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
