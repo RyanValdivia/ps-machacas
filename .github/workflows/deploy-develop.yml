@@ -77,6 +77,8 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.VPS_APP_DIR }}"
+            git fetch --all
+            git checkout develop
             git pull
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             docker compose --env-file infra/develop/.env -f infra/develop/compose.yml pull
