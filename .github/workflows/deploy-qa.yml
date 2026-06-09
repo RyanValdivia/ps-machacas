@@ -128,7 +128,7 @@ jobs:
             git pull
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             docker compose --env-file infra/qa/.env -f infra/qa/compose.yml pull
-            docker compose --env-file infra/qa/.env -f infra/qa/compose.yml up -d --remove-orphans
+            docker compose --env-file infra/qa/.env -f infra/qa/compose.yml up -d --remove-orphans --force-recreate
             docker image prune -f
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
