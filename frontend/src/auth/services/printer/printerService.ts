@@ -3,7 +3,9 @@
  * Compatible con Tauri y desarrollo local
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { getApiOrigin } from '../../../config/api';
+
+const API_URL = getApiOrigin();
 
 export interface DatosImpresion {
   venta_id?: number;  // Si se envía, busca la venta en BD

@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,  # Login
     TokenRefreshView,     # Refrescar token
 )
+from .token_serializers import CustomTokenObtainPairView
 from .views import  UserViewSet, login_user, logout_user,login_user, logout_user,new_Usuario, list_users, delete_user,get_user, update_user, change_password, get_current_user, list_cashier_users, list_seller_users
 
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     path('update/<int:usuCod>/', update_user, name='update_user'),
     path('change-password/<int:usuCod>/', change_password, name='change_password'),
     # Token para autenticación jwt login y logout a través de access y refresh en userservice 
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     #Nuevo get current User para autenticacion por nivel de acceso

@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: registrame-qa-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-registrame_qa_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - registrame-qa-internal
+
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/registrame-backend:${IMAGE_TAG:-qa}
+    container_name: registrame-qa-backend
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://${TRAEFIK_HOST}}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://${TRAEFIK_HOST}}
+      DB_ENGINE: ${DB_ENGINE:-django.db.backends.postgresql}
+      DB_NAME: ${DB_NAME:-registrame_qa_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_HOST: db
+      DB_PORT: 5432
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@registrame.com}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
+      DEFAULT_ADMIN_FULL_NAME: ${DEFAULT_ADMIN_FULL_NAME:-Administrador}
+      DEFAULT_ADMIN_DNI: ${DEFAULT_ADMIN_DNI:-00000000}
+      DEFAULT_ADMIN_PHONE: ${DEFAULT_ADMIN_PHONE:-900000000}
+    depends_on:
+      - db
+    volumes:
+      - backend_media:/app/backend/media
+    restart: unless-stopped
+    networks:
+      - registrame-qa-internal
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/registrame-frontend:${IMAGE_TAG:-qa}
+    container_name: registrame-qa-frontend
+    depends_on:
+      - backend
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}
+      - traefik.http.routers.registrame-qa.rule=Host(`${TRAEFIK_HOST}`)
+      - traefik.http.routers.registrame-qa.entrypoints=websecure
+      - traefik.http.routers.registrame-qa.tls=true
+      - traefik.http.routers.registrame-qa.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.registrame-qa.loadbalancer.server.port=80
+    restart: unless-stopped
+    networks:
+      - registrame-qa-internal
+      - traefik
+
+volumes:
+  postgres_data:
+  backend_media:
+
+networks:
+  registrame-qa-internal:
+    driver: bridge
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}
