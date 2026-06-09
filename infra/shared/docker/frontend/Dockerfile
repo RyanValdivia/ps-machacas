@@ -1,9 +1,9 @@
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
 
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install --no-audit --no-fund
 
 COPY frontend ./frontend
 WORKDIR /app/frontend
