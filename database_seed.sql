@@ -1,30 +1,20 @@
--- Seed data for RegistraMe (PostgreSQL compatible)
+-- Seed data for RegistraMe (PostgreSQL compatible, idempotent)
 -- Run AFTER migrations: docker compose exec backend python manage.py migrate
 -- Usage: docker exec -i registrame-db psql -U postgres -d registrame_db < database_seed.sql
 
 BEGIN;
 
--- Reset sequences for clean insert with explicit IDs
-ALTER TABLE "categories_productcategory" ALTER COLUMN "catproCod" RESTART WITH 1;
-ALTER TABLE "suppliers_supplier" ALTER COLUMN "provCod" RESTART WITH 1;
-ALTER TABLE "users_role" ALTER COLUMN "rolCod" RESTART WITH 1;
-ALTER TABLE "users_user" ALTER COLUMN "usuCod" RESTART WITH 1;
-ALTER TABLE "product" ALTER COLUMN "prodCod" RESTART WITH 1;
-ALTER TABLE "product_sequence" ALTER COLUMN "id" RESTART WITH 1;
-ALTER TABLE "luna_material" ALTER COLUMN "lunMatCod" RESTART WITH 1;
-ALTER TABLE "luna_tipo" ALTER COLUMN "lunTipCod" RESTART WITH 1;
-ALTER TABLE "luna_caracteristica" ALTER COLUMN "lunCarCod" RESTART WITH 1;
-ALTER TABLE "luna_configuracion" ALTER COLUMN "lunConfCod" RESTART WITH 1;
-
 -- Categories
 INSERT INTO "categories_productcategory" ("catproCod","catproCode","catproNom","catproRequiereInventario") VALUES
 (1,'AC','Accesorios',TRUE),
 (2,'MO','Monturas',TRUE),
-(3,'LUNA','Lunas',FALSE);
+(3,'LUNA','Lunas',FALSE)
+ON CONFLICT ("catproCod") DO NOTHING;
 
 -- Suppliers
 INSERT INTO "suppliers_supplier" ("provCod","provRuc","provRazSocial","provDirec","provEmail","provCiu","provEstado","provTele") VALUES
-(1,'00000000000','Proveedor Genérico','No especificado','generico@proveedor.com','N/A','Active','999999999');
+(1,'00000000000','Proveedor Genérico','No especificado','generico@proveedor.com','N/A','Active','999999999')
+ON CONFLICT ("provCod") DO NOTHING;
 
 -- Roles
 INSERT INTO "users_role" ("rolCod","rolNom","rolDes","rolEstado","rolNivel") VALUES
@@ -32,19 +22,20 @@ INSERT INTO "users_role" ("rolCod","rolNom","rolDes","rolEstado","rolNivel") VAL
 (2,'CAJERO','Cajero','ACTIVO',2),
 (3,'VENDEDOR','Vendedor','ACTIVO',2),
 (4,'OPTOMETRA','Optometra','ACTIVO',4),
-(5,'LOGISTICA','Logística','ACTIVO',3);
+(5,'LOGISTICA','Logística','ACTIVO',3)
+ON CONFLICT ("rolCod") DO NOTHING;
 
 -- Users (password: Admin123!)
 INSERT INTO "users_user" ("last_login","is_superuser","usuCod","usuNom","password","usuNombreCom","usuDNI","usuTel","usuEmail","usuEstado","is_staff","is_active","date_joined") VALUES
-(NULL,TRUE,1,'admin','pbkdf2_sha256$1000000$kEmZkK2wQsvU6P4QI7fR85$RbQeZboInSNlqB/j/DQTklNoJINT4qk/iYwb1gZcYPY=','Administrador del Sistema','99999999','999999999','admin@registrame.com',TRUE,TRUE,TRUE,'2026-06-09 12:48:23.447794+00'),
 (NULL,FALSE,2,'cajero1','pbkdf2_sha256$1000000$NkTao8VuXHLvozmVINzRTN$E6w5ia4Kx1mfFQOwgx9mncwJrVoNIvI1wXfs8H8rFhc=','Cajero de Prueba','88888888','888888888','cajero1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:24.214390+00'),
-(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00');
+(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00')
+ON CONFLICT ("usuCod") DO NOTHING;
 
 -- User-Role assignments
 INSERT INTO "users_user_roles" ("id","user_id","role_id") VALUES
-(1,1,1),
 (2,2,2),
-(3,3,3);
+(3,3,3)
+ON CONFLICT ("id") DO NOTHING;
 
 -- Products
 INSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","prodColor","prodTalla","prodGenero","prodCostoInv","prodPrecioVenta","prodStock","prodStockMin","prodEstado","created_at","updated_at","catproCod_id","provCod_id","prodDescripcionAdicional","prodForma","prodTieneSobrelente") VALUES
@@ -63,7 +54,8 @@ INSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","
 (13,'M12','OZZY | 55-16-140 NEGRO BLANCO DORADO POLIGONAL - HZ8001 C5','OZZY','M','NEGRO BLANCO DORADO','55-16-140','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.236412+00','2026-06-09 12:48:15.236412+00',2,1,'HZ8001 C5','POLIGONAL',FALSE),
 (14,'M13','OZZY | 52-18-140 NEGRO ROSA PLATEADO - HZ8003 C4','OZZY','M','NEGRO ROSA PLATEADO','52-18-140','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.250292+00','2026-06-09 12:48:15.250292+00',2,1,'HZ8003 C4','',FALSE),
 (15,'M14','FEILLIS | 56-15-144 NEGRO AVIADOR [Con Sobrelente] - 8015 Doble Puente - 4 Sobrelentes','FEILLIS','M','NEGRO','56-15-144','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.263647+00','2026-06-09 12:48:15.263647+00',2,1,'8015 Doble Puente - 4 Sobrelentes','AVIADOR',TRUE),
-(16,'1','LUNA PERSONALIZADA','','N','','','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.275270+00','2026-06-09 12:48:15.275270+00',1,1,'LUNA PERSONALIZADA','',FALSE);
+(16,'1','LUNA PERSONALIZADA','','N','','','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.275270+00','2026-06-09 12:48:15.275270+00',1,1,'LUNA PERSONALIZADA','',FALSE)
+ON CONFLICT ("prodCod") DO NOTHING;
 
 -- Product sequences
 INSERT INTO "product_sequence" ("id","sequence_type","current_value","description","created_at","updated_at") VALUES
@@ -71,7 +63,8 @@ INSERT INTO "product_sequence" ("id","sequence_type","current_value","descriptio
 (2,'M',14,'Monturas de Metal','2026-06-09 12:46:47.894895+00','2026-06-09 12:46:47.894895+00'),
 (3,'TR',0,'Monturas TR','2026-06-09 12:46:47.896899+00','2026-06-09 12:46:47.896899+00'),
 (4,'C',0,'Monturas de Carey','2026-06-09 12:46:47.897896+00','2026-06-09 12:46:47.897896+00'),
-(5,'GENERAL',1,'Productos no monturas','2026-06-09 12:46:47.900273+00','2026-06-09 12:46:47.900273+00');
+(5,'GENERAL',1,'Productos no monturas','2026-06-09 12:46:47.900273+00','2026-06-09 12:46:47.900273+00')
+ON CONFLICT ("id") DO NOTHING;
 
 -- Luna materials
 INSERT INTO "luna_material" ("lunMatCod","lunMatNombre","lunMatDescripcion","lunMatActivo") VALUES
@@ -79,13 +72,15 @@ INSERT INTO "luna_material" ("lunMatCod","lunMatNombre","lunMatDescripcion","lun
 (2,'Policarbonato','Material ligero y resistente',TRUE),
 (3,'Resina','Material de resina',TRUE),
 (4,'Cristal','Material tradicional de alta calidad',TRUE),
-(5,'Otros','Otros materiales',TRUE);
+(5,'Otros','Otros materiales',TRUE)
+ON CONFLICT ("lunMatCod") DO NOTHING;
 
 -- Luna types
 INSERT INTO "luna_tipo" ("lunTipCod","lunTipNombre","lunTipDescripcion","lunTipActivo") VALUES
 (1,'Monofocal','Corrección para una distancia',TRUE),
 (2,'Bifocal','Corrección para dos distancias',TRUE),
-(3,'Multifocal','Corrección para múltiples distancias',TRUE);
+(3,'Multifocal','Corrección para múltiples distancias',TRUE)
+ON CONFLICT ("lunTipCod") DO NOTHING;
 
 -- Luna characteristics
 INSERT INTO "luna_caracteristica" ("lunCarCod","lunCarNombre","lunCarDescripcion","lunCarPrecioAdicional","lunCarActivo") VALUES
@@ -96,7 +91,8 @@ INSERT INTO "luna_caracteristica" ("lunCarCod","lunCarNombre","lunCarDescripcion
 (5,'Polarizado','Elimina deslumbramiento',60,TRUE),
 (6,'Alto Indice','Lentes más delgados',50,TRUE),
 (7,'Digital','Protección luz digital',45,TRUE),
-(8,'Coloreado','Luna con color personalizado',35,TRUE);
+(8,'Coloreado','Luna con color personalizado',35,TRUE)
+ON CONFLICT ("lunCarCod") DO NOTHING;
 
 -- Luna configurations (material x tipo price matrix)
 INSERT INTO "luna_configuracion" ("lunConfCod","lunConfPrecioBase","lunConfActivo","lunMatCod_id","lunTipCod_id") VALUES
@@ -114,6 +110,7 @@ INSERT INTO "luna_configuracion" ("lunConfCod","lunConfPrecioBase","lunConfActiv
 (12,290,TRUE,4,3),
 (13,80,TRUE,5,1),
 (14,150,TRUE,5,2),
-(15,240,TRUE,5,3);
+(15,240,TRUE,5,3)
+ON CONFLICT ("lunConfCod") DO NOTHING;
 
 COMMIT;

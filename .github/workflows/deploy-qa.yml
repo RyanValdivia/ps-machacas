@@ -158,13 +158,8 @@ jobs:
               echo "DB not ready, retrying in 2s..."
               sleep 2
             done
-            COUNT=$(docker exec registrame-qa-db psql -U postgres -d registrame_qa_db -t -A -c "SELECT COUNT(*) FROM users_user;" 2>/dev/null || echo "error")
-            if [ "$COUNT" = "0" ]; then
-              echo "Empty DB detected, seeding..."
-              docker exec -i registrame-qa-db psql -U postgres -d registrame_qa_db < database_seed.sql
-              echo "Seed complete."
-            else
-              echo "DB has data or table not ready (count=$COUNT), skipping seed."
-            fi
+            echo "Running seed..."
+            docker exec -i registrame-qa-db psql -U postgres -d registrame_qa_db < database_seed.sql
+            echo "Seed complete."
         env:
           VPS_QA_APP_DIR: ${{ secrets.VPS_QA_APP_DIR }}
