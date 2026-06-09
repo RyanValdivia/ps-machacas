@@ -71,6 +71,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -92,7 +95,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/registrame-backend:${{ env.IMAGE_TAG }}
 
       - name: Build and push frontend
         uses: docker/build-push-action@v6
@@ -102,7 +105,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/registrame-frontend:${{ env.IMAGE_TAG }}
 
   deploy:
     runs-on: ubuntu-latest
