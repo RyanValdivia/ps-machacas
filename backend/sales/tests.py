@@ -471,6 +471,41 @@ class TestComprobanteModel(TestCase):
 
 
 class TestSerializers(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from categories.models import ProductCategory
+        from suppliers.models import Supplier
+        from products.models import Product
+        from users.models import User
+        from clients.models import Client
+        from cash.models import Cash, CashOpening
+        from sales.models import Venta, VentaDetalle
+        cls.categoria, _ = ProductCategory.objects.get_or_create(catproCode="MO", defaults={"catproNom": "Monturas"})
+        cls.proveedor = Supplier.objects.create(provRazSocial="Prov S", provRuc="33333333333", provTele="999888555")
+        cls.producto = Product.objects.create(
+            catproCod=cls.categoria, provCod=cls.proveedor,
+            prodDescr="Producto Test", prodMarca="MA",
+            prodPrecioVenta=Decimal("50.00"), prodCostoInv=Decimal("25.00"),
+            prodStock=3, prodMate="A", prodTalla="54-18-140",
+        )
+        cls.usuario = User.objects.create(
+            usuNom="seruser", usuEmail="ser@test.com",
+            usuNombreCom="Serializer User", password="pass"
+        )
+        cls.cliente = Client.objects.create(cliTipoDoc="DNI", cliNumDoc="99999999", cliNomCompleto="Serializer Client")
+        cls.caja = Cash.objects.create(cajNom="Caja Ser", usuCod=cls.usuario)
+        cls.apertura = CashOpening.objects.create(cajCod=cls.caja, usuCod=cls.usuario, cajaAperMontInicial=Decimal("500"))
+        cls.venta = Venta.objects.create(usuCod=cls.usuario, cliCod=cls.cliente, cajaAperCod=cls.apertura)
+        cls.venta.ventSubTotal = Decimal("50.00")
+        cls.venta.ventTotal = Decimal("50.00")
+        cls.venta.ventSaldo = Decimal("50.00")
+        cls.venta.save()
+        cls.detalle = VentaDetalle.objects.create(
+            ventCod=cls.venta, prodCod=cls.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("50.00"),
+            ventDetSubtotal=Decimal("50.00"), ventDetTotal=Decimal("50.00"),
+        )
+
     # TEST: VentaDetalleCreateSerializer cantidad cero
     def test_serializer_valida_cantidad_cero(self):
         from sales.serializers import VentaDetalleCreateSerializer
@@ -504,6 +539,61 @@ class TestSerializers(TestCase):
         assert field.to_internal_value([]) == ""
         assert field.to_internal_value("texto") == "texto"
         assert field.to_internal_value(None) == ""
+
+    # TEST: ClienteSimpleSerializer datos basicos
+    def test_cliente_simple_serializer(self):
+        from sales.serializers import ClienteSimpleSerializer
+        s = ClienteSimpleSerializer(self.cliente)
+        assert s.data["cliCod"] == self.cliente.cliCod
+        assert s.data["cliNomCompleto"] == "SERIALIZER CLIENT"
+
+    # TEST: ProductoSimpleSerializer datos basicos
+    def test_producto_simple_serializer(self):
+        from sales.serializers import ProductoSimpleSerializer
+        s = ProductoSimpleSerializer(self.producto)
+        assert s.data["prodDescr"] == "MA | 54-18-140"
+
+    # TEST: VentaDetalleCreateSerializer stock insuficiente
+    def test_detalle_create_stock_insuficiente(self):
+        from sales.serializers import VentaDetalleCreateSerializer
+        s = VentaDetalleCreateSerializer(data={
+            "prodCod": self.producto.prodCod,
+            "ventDetCantidad": 10,
+            "ventDetPrecioUni": 50,
+        })
+        assert not s.is_valid()
+        assert "Stock" in str(s.errors)
+
+    # TEST: VentaDetalleCreateSerializer luna sin precio
+    def test_detalle_create_luna_sin_precio(self):
+        from sales.serializers import VentaDetalleCreateSerializer
+        s = VentaDetalleCreateSerializer(data={
+            "prodCod": self.producto.prodCod,
+            "esLunaPersonalizada": True,
+            "ventDetCantidad": 1,
+            "ventDetPrecioUni": 0,
+        })
+        assert not s.is_valid()
+        assert "precio" in str(s.errors).lower()
+
+    # TEST: VentaDetailSerializer con detalles
+    def test_venta_detail_serializer(self):
+        from sales.serializers import VentaDetailSerializer
+        s = VentaDetailSerializer(self.venta)
+        assert s.data["ventCod"] == self.venta.ventCod
+        assert len(s.data["detalles"]) == 1
+        det = s.data["detalles"][0]
+        assert det["ventDetCantidad"] == 1
+
+    # TEST: ComprobanteSerializer serializa venta
+    def test_comprobante_serializer(self):
+        from sales.models import Comprobante
+        from sales.serializers import ComprobanteSerializer
+        comp = Comprobante.objects.create(ventCod=self.venta)
+        s = ComprobanteSerializer(comp)
+        assert s.data["venta"]["ventCod"] == self.venta.ventCod
+        assert s.data["comprNombreCliente"] == "SERIALIZER CLIENT"
+        assert len(s.data["detalles"]) == 1
 
 
 class TestFilters(TestCase):
@@ -918,6 +1008,97 @@ class TestViews(TestCase):
         resp = c.get("/api/sales/ventas/estadisticas_dashboard/")
         assert resp.status_code == 200
 
+    # TEST: registrar_pago monto excede saldo
+    def test_registrar_pago_monto_excede(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/registrar_pago/", {"monto": 31, "forma_pago": "EFECTIVO"}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: anular ya anulada
+    def test_anular_ya_anulada(self):
+        c = self._auth_client()
+        c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {"motivo": "Prueba"}, format="json")
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {"motivo": "Otra"}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: marcar_listo en anulada
+    def test_marcar_listo_anulada(self):
+        c = self._auth_client()
+        c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {"motivo": "Test"}, format="json")
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/marcar_listo/")
+        assert resp.status_code == 400
+
+    # TEST: marcar_entregado en anulada
+    def test_marcar_entregado_anulada(self):
+        c = self._auth_client()
+        c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {"motivo": "Test"}, format="json")
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/marcar_entregado/")
+        assert resp.status_code == 400
+
+    # TEST: actualizar_laboratorio en detalle anulado
+    def test_actualizar_laboratorio_anulado(self):
+        from sales.models import VentaDetalle
+        detalle = VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+        )
+        c = self._auth_client()
+        c.post(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/anular_detalle/")
+        resp = c.patch(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/actualizar_laboratorio/",
+                       {"lunaCostoLaboratorio": 150}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: imprimir_ticket con venta_id sin productos
+    def test_imprimir_ticket_con_venta_id(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/imprimir/", {"venta_id": self.venta.ventCod}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: estadisticas_dashboard periodo dia
+    def test_estadisticas_dashboard_periodo_dia(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/estadisticas_dashboard/?periodo=dia")
+        assert resp.status_code == 200
+
+    # TEST: estadisticas_dashboard periodo semana
+    def test_estadisticas_dashboard_periodo_semana(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/estadisticas_dashboard/?periodo=semana")
+        assert resp.status_code == 200
+
+    # TEST: estadisticas_dashboard periodo personalizado
+    def test_estadisticas_dashboard_periodo_personalizado(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/estadisticas_dashboard/?periodo=personalizado&fecha_desde=2024-01-01&fecha_hasta=2024-12-31")
+        assert resp.status_code == 200
+
+    # TEST: actualizar_laboratorio con luna
+    def test_actualizar_laboratorio_luna_ok(self):
+        from sales.models import VentaDetalle
+        detalle = VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+            esLunaPersonalizada=True,
+        )
+        c = self._auth_client()
+        resp = c.patch(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/actualizar_laboratorio/",
+                       {"lunaLaboratorio": self.proveedor.pk, "lunaCostoLaboratorio": 150}, format="json")
+        assert resp.status_code == 200
+
+    # TEST: estadisticas_dashboard con ventas con detalles
+    def test_estadisticas_dashboard_con_detalles(self):
+        from sales.models import VentaDetalle
+        VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+        )
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/estadisticas_dashboard/")
+        assert resp.status_code == 200
+
 
 class TestPrinter(TestCase):
     # TEST: generar ticket minimo
@@ -1054,3 +1235,70 @@ class TestPrinter(TestCase):
         imp._enviar_a_impresora = failing_send
         result = imp.imprimir_ticket_venta({"folio": "999"})
         assert result.get("success") is False
+
+    # TEST: generar ticket con nombre de optica
+    def test_generar_ticket_con_optical_center(self):
+        from sales.printer import ImpresoraTermica
+        from opticalCenter.models import OpticalCenter
+        oc, _ = OpticalCenter.objects.get_or_create(pk=1)
+        oc.optNom = "MI OPTICA TEST"
+        oc.optDir = None
+        oc.optTel = None
+        oc.optLogo = None
+        oc.save()
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({"folio": "OC1", "fecha": "2024-01-01"})
+        assert b"MI OPTICA TEST" in ticket
+        assert b"OPTICA VISION IDEAL" not in ticket
+
+    # TEST: generar ticket con direccion y telefono
+    def test_generar_ticket_con_direccion_telefono(self):
+        from sales.printer import ImpresoraTermica
+        from opticalCenter.models import OpticalCenter
+        oc, _ = OpticalCenter.objects.get_or_create(pk=1)
+        oc.optNom = "TIENDA"
+        oc.optDir = "AV PRINCIPAL 123"
+        oc.optTel = "999888777"
+        oc.optLogo = None
+        oc.save()
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({"folio": "OC2", "fecha": "2024-01-01"})
+        assert b"AV PRINCIPAL 123" in ticket
+        assert b"999888777" in ticket
+
+    # TEST: preparar logo termico desde imagen
+    def test_preparar_logo_termico(self):
+        from sales.printer import ImpresoraTermica
+        import tempfile, os
+        from PIL import Image
+        imp = ImpresoraTermica()
+        src = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        src.close()
+        result = None
+        try:
+            Image.new('RGB', (100, 50), color='white').save(src.name)
+            result = imp._preparar_logo_termico(src.name)
+            assert result.endswith(".png")
+            assert os.path.exists(result)
+            assert Image.open(result).mode == '1'
+        finally:
+            for p in [src.name, result]:
+                if p and os.path.exists(p):
+                    os.unlink(p)
+
+    # TEST: convertir imagen a escpos
+    def test_convertir_imagen_a_escpos(self):
+        from sales.printer import ImpresoraTermica
+        import tempfile, os
+        from PIL import Image
+        imp = ImpresoraTermica()
+        src = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        src.close()
+        try:
+            Image.new('RGB', (50, 50), color='white').save(src.name)
+            result = imp._convertir_imagen_a_escpos(src.name)
+            assert isinstance(result, bytes)
+            assert result.startswith(b'\x1dv0\x00')
+        finally:
+            if os.path.exists(src.name):
+                os.unlink(src.name)

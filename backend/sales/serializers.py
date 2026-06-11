@@ -375,11 +375,11 @@ class ComprobanteDetalleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComprobanteDetalle
         fields = [
-            'comdetCod',
-            'comdetDescripcion',
-            'comdetCantidad',
-            'comdetPrecioUni',
-            'comdetTotal'
+            'comprDetCod',
+            'comprDetDescripcion',
+            'comprDetCantidad',
+            'comprDetPrecioUni',
+            'comprDetTotal'
         ]
 
 
