@@ -7,6 +7,7 @@ from clients.filters import ClientFilter
 
 @pytest.mark.django_db
 def test_cliTipoDoc_filter():
+    """Prueba que el filtro por tipo de documento (DNI/RUC) retorne los registros correspondientes."""
     c = Client(cliNumDoc='9001', cliTipoDoc='RUC', cliNomCompleto='X')
     c.save()
     qs = Client.objects.all()
@@ -16,6 +17,7 @@ def test_cliTipoDoc_filter():
 
 @pytest.mark.django_db
 def test_edad_min_filter_includes_expected():
+    """Valida que el filtro de edad mínima incluya a los clientes cuya fecha de nacimiento cumpla con el criterio."""
     today = timezone.now().date()
     edad = 30
     birth = today - timedelta(days=int(edad * 365.25))
@@ -28,6 +30,7 @@ def test_edad_min_filter_includes_expected():
 
 @pytest.mark.django_db
 def test_edad_max_filter_includes_expected():
+    """Valida que el filtro de edad máxima incluya correctamente a los clientes dentro del rango de edad especificado."""
     today = timezone.now().date()
     edad = 20
     birth = today - timedelta(days=int(edad * 365.25))
