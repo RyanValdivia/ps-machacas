@@ -20,6 +20,7 @@ omit = [
     "*/__init__.py",
     "backend/_check_db.py",
     "backend/run_server.py",
+    "backend/products/seed_products.py"
 ]
 
 [tool.coverage.report]

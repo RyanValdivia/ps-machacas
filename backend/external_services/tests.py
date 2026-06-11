@@ -9,7 +9,7 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado para servicios externos"""
-    user = User.objects.create_user(usuNom="proxyuser", usuEmail="proxy@test.com", password="password123")
+    user = User.objects.create_user(usuNom="proxyuser", usuContra="password123", usuEmail="proxy@test.com")
     api_client.force_authenticate(user=user)
     return api_client
 

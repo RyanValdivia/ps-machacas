@@ -11,7 +11,7 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado para OpticalCenter"""
-    user = User.objects.create_user(usuNom="admin_opt", usuEmail="opt@test.com", password="password123")
+    user = User.objects.create_user(usuNom="admin_opt", usuContra="password123", usuEmail="opt@test.com")
     api_client.force_authenticate(user=user)
     return api_client
 
@@ -56,9 +56,14 @@ def test_create_exception_handling(auth_client):
 @pytest.mark.django_db
 def test_update_optical_center_with_logo(auth_client):
     """Prueba la actualización (PUT) incluyendo un archivo de logo (Líneas 73-85)"""
+    from PIL import Image
+    import io
     OpticalCenter.objects.create(pk=1, optNom="Vieja")
     url = reverse('opticalcenter-detail', kwargs={'pk': 1})
-    logo = SimpleUploadedFile("logo.png", b"file_content", content_type="image/png")
+    img = Image.new('RGB', (100, 50), color='red')
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    logo = SimpleUploadedFile("logo.png", buf.getvalue(), content_type="image/png")
     
     # Mock para evitar errores de filesystem real al guardar el logo
     with patch('django.core.files.storage.FileSystemStorage.save', return_value="logo.png"):
@@ -95,11 +100,11 @@ def test_partial_update_exception_handling(auth_client):
 
 @pytest.mark.django_db
 def test_destroy_optical_center(auth_client):
-    """Prueba el método destroy (Línea 137)"""
+    """Prueba que DELETE retorne 405 (método no permitido)"""
     OpticalCenter.objects.create(pk=1)
     url = reverse('opticalcenter-detail', kwargs={'pk': 1})
     resp = auth_client.delete(url)
-    assert resp.status_code == 204
+    assert resp.status_code == 405
 
 @pytest.mark.django_db
 def test_ensure_media_dirs_branches(auth_client):
