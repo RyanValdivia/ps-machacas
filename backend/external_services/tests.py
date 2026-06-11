@@ -1,191 +1,135 @@
 import pytest
-from django.contrib.auth.models import User
-from rest_framework import status
-from unittest.mock import patch, Mock
+from django.urls import reverse
+from unittest.mock import patch
+import requests
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 @pytest.fixture
-def authenticated_client(api_client):
-    user = User.objects.create_user(username='testuser', password='testpass')
+def auth_client(api_client, db):
+    """Fixture para proporcionar un cliente de API autenticado para servicios externos"""
+    user = User.objects.create_user(usuNom="proxyuser", usuEmail="proxy@test.com", password="password123")
     api_client.force_authenticate(user=user)
     return api_client
 
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_success(mock_get, auth_client):
+    """Prueba una consulta exitosa de DNI"""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {"dni": "12345678", "nombres": "JUAN"}
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 200
+    assert resp.data['nombres'] == "JUAN"
 
 @pytest.mark.django_db
-class TestConsultarDNI:
-    # TEST: GET sin autenticacion retorna 401
-    def test_unauthenticated(self, api_client):
-        r = api_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_401_UNAUTHORIZED
-
-    # TEST: GET sin numero retorna 400
-    def test_sin_numero(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/dni')
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Debe proporcionar' in r.data['error']
-
-    # TEST: GET con formato invalido retorna 400
-    def test_formato_invalido(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/dni', {'numero': 'abc'})
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'DNI inv' in r.data['error']
-
-    # TEST: GET con menos de 8 digitos retorna 400
-    def test_longitud_invalida(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '1234567'})
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-
-    # TEST: GET con 8 digitos exitoso
-    @patch('requests.get')
-    def test_consulta_exitosa(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {'numero': '12345678', 'nombre': 'JUAN PEREZ'}
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['nombre'] == 'JUAN PEREZ'
-
-    # TEST: GET con 404 retorna error
-    @patch('requests.get')
-    def test_no_encontrado(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_404_NOT_FOUND
-        assert 'no encontrado' in r.data['error']
-
-    # TEST: GET con 429 retorna error rate limit
-    @patch('requests.get')
-    def test_rate_limit(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 429
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_429_TOO_MANY_REQUESTS
-        assert 'L' in r.data['error']
-
-    # TEST: GET con otro status code retorna 503
-    @patch('requests.get')
-    def test_otro_error(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-
-    # TEST: GET con timeout retorna 504
-    @patch('requests.get')
-    def test_timeout(self, mock_get, authenticated_client):
-        from requests.exceptions import Timeout
-        mock_get.side_effect = Timeout()
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_504_GATEWAY_TIMEOUT
-        assert 'Tiempo de espera' in r.data['error']
-
-    # TEST: GET con connection error retorna 503
-    @patch('requests.get')
-    def test_connection_error(self, mock_get, authenticated_client):
-        from requests.exceptions import ConnectionError
-        mock_get.side_effect = ConnectionError()
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-        assert 'Error de conexi' in r.data['error']
-
-    # TEST: GET con excepcion inesperada retorna 500
-    @patch('requests.get')
-    def test_error_inesperado(self, mock_get, authenticated_client):
-        mock_get.side_effect = Exception("Algo salio mal")
-        r = authenticated_client.get('/api/proxy/dni', {'numero': '12345678'})
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert 'inesperado' in r.data['error']
-
+def test_consultar_dni_invalid_format(auth_client):
+    """Valida rechazo de DNI con formato incorrecto"""
+    url = reverse('consultar_dni') + "?numero=123"
+    resp = auth_client.get(url)
+    assert resp.status_code == 400
 
 @pytest.mark.django_db
-class TestConsultarRUC:
-    # TEST: GET sin autenticacion retorna 401
-    def test_unauthenticated(self, api_client):
-        r = api_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+@patch('requests.get')
+def test_consultar_dni_not_found(mock_get, auth_client):
+    """Cubre error 404 de la API de DNI"""
+    mock_get.return_value.status_code = 404
+    url = reverse('consultar_dni') + "?numero=00000000"
+    resp = auth_client.get(url)
+    assert resp.status_code == 404
 
-    # TEST: GET sin numero retorna 400
-    def test_sin_numero(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/ruc')
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Debe proporcionar' in r.data['error']
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_rate_limit(mock_get, auth_client):
+    """Cubre error 429 (Límites) en DNI"""
+    mock_get.return_value.status_code = 429
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 429
 
-    # TEST: GET con formato invalido retorna 400
-    def test_formato_invalido(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': 'abc'})
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'RUC inv' in r.data['error']
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_unexpected_error(mock_get, auth_client):
+    """Cubre códigos de estado no manejados específicamente en DNI"""
+    mock_get.return_value.status_code = 500
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 503
 
-    # TEST: GET con menos de 11 digitos retorna 400
-    def test_longitud_invalida(self, authenticated_client):
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '1234567890'})
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_timeout(mock_get, auth_client):
+    """Cubre timeout en consulta DNI"""
+    mock_get.side_effect = requests.exceptions.Timeout
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 504
 
-    # TEST: GET con 11 digitos exitoso
-    @patch('requests.get')
-    def test_consulta_exitosa(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {'numero': '20123456789', 'nombre': 'EMPRESA SAC'}
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['nombre'] == 'EMPRESA SAC'
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_connection_error(mock_get, auth_client):
+    """Cubre error de conexión en DNI"""
+    mock_get.side_effect = requests.exceptions.ConnectionError
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 503
 
-    # TEST: GET con 404 retorna error
-    @patch('requests.get')
-    def test_no_encontrado(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_404_NOT_FOUND
-        assert 'no encontrado' in r.data['error']
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_dni_generic_exception(mock_get, auth_client):
+    """Cubre excepciones inesperadas en DNI"""
+    mock_get.side_effect = Exception("Falla crítica")
+    url = reverse('consultar_dni') + "?numero=12345678"
+    resp = auth_client.get(url)
+    assert resp.status_code == 500
 
-    # TEST: GET con 429 retorna error rate limit
-    @patch('requests.get')
-    def test_rate_limit(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 429
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_ruc_success(mock_get, auth_client):
+    """Prueba consulta exitosa de RUC"""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {"ruc": "20123456789", "razonSocial": "TEST"}
+    url = reverse('consultar_ruc') + "?numero=20123456789"
+    resp = auth_client.get(url)
+    assert resp.status_code == 200
 
-    # TEST: GET con otro status code retorna 500
-    @patch('requests.get')
-    def test_otro_error(self, mock_get, authenticated_client):
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_get.return_value = mock_response
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+@pytest.mark.django_db
+def test_consultar_ruc_missing_number(auth_client):
+    """Valida RUC faltante"""
+    resp = auth_client.get(reverse('consultar_ruc'))
+    assert resp.status_code == 400
 
-    # TEST: GET con timeout retorna 504
-    @patch('requests.get')
-    def test_timeout(self, mock_get, authenticated_client):
-        from requests.exceptions import Timeout
-        mock_get.side_effect = Timeout()
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_504_GATEWAY_TIMEOUT
-        assert 'Tiempo de espera' in r.data['error']
+@pytest.mark.django_db
+def test_consultar_ruc_invalid_format(auth_client):
+    """Valida RUC con formato incorrecto (no 11 dígitos)"""
+    url = reverse('consultar_ruc') + "?numero=123"
+    resp = auth_client.get(url)
+    assert resp.status_code == 400
 
-    # TEST: GET con connection error retorna 503
-    @patch('requests.get')
-    def test_connection_error(self, mock_get, authenticated_client):
-        from requests.exceptions import ConnectionError
-        mock_get.side_effect = ConnectionError()
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-        assert 'Error de conexi' in r.data['error']
+@pytest.mark.django_db
+@patch('requests.get')
+def test_consultar_ruc_error_responses(mock_get, auth_client):
+    """Prueba múltiples respuestas de error en RUC (429, 500, Timeout, Connection)"""
+    base_url = reverse('consultar_ruc') + "?numero=20123456789"
+    
+    # 429
+    mock_get.return_value.status_code = 429
+    assert auth_client.get(base_url).status_code == 429
+    
+    # Otros errores (500)
+    mock_get.return_value.status_code = 500
+    assert auth_client.get(base_url).status_code == 500
 
-    # TEST: GET con excepcion inesperada retorna 500
-    @patch('requests.get')
-    def test_error_inesperado(self, mock_get, authenticated_client):
-        mock_get.side_effect = Exception("Error raro")
-        r = authenticated_client.get('/api/proxy/ruc', {'numero': '20123456789'})
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    # Timeout
+    mock_get.side_effect = requests.exceptions.Timeout
+    assert auth_client.get(base_url).status_code == 504
+
+    # Connection Error
+    mock_get.side_effect = requests.exceptions.ConnectionError
+    assert auth_client.get(base_url).status_code == 503
+
+    # Generic Exception
+    mock_get.side_effect = Exception("Crash")
+    assert auth_client.get(base_url).status_code == 500

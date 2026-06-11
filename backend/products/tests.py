@@ -744,3 +744,85 @@ class TestProductPermissions:
         """Gerente puede acceder"""
         response = gerente_client.get('/api/products/')
         assert response.status_code == 200
+
+
+# ==================== ADDITIONAL TESTS FOR COVERAGE ====================
+
+@pytest.mark.django_db
+def test_update_stock_invalid_quantity(logistica_client, categoria_montura, supplier):
+    """Prueba actualización de stock con cantidad inválida."""
+    product = Product.objects.create(
+        catproCod=categoria_montura,
+        provCod=supplier,
+        prodDescr='Test',
+        prodMarca='M',
+        prodStock=10,
+        prodPrecioVenta=Decimal('100.00')
+    )
+    response = logistica_client.post(
+        f'/api/products/{product.prodCod}/update_stock/',
+        {'cantidad': 'invalido', 'tipo': 'entrada'}
+    )
+    assert response.status_code == 400
+    assert 'numero' in response.data['error'].lower()
+
+
+@pytest.mark.django_db
+def test_update_stock_invalid_type(logistica_client, categoria_montura, supplier):
+    """Prueba actualización de stock con tipo inválido."""
+    product = Product.objects.create(
+        catproCod=categoria_montura,
+        provCod=supplier,
+        prodDescr='Test',
+        prodMarca='M',
+        prodStock=10,
+        prodPrecioVenta=Decimal('100.00')
+    )
+    response = logistica_client.post(
+        f'/api/products/{product.prodCod}/update_stock/',
+        {'cantidad': 5, 'tipo': 'invalido'}
+    )
+    assert response.status_code == 400
+    assert 'entrada' in response.data['error'].lower()
+
+
+@pytest.mark.django_db
+def test_update_stock_insufficient(logistica_client, categoria_montura, supplier):
+    """Prueba actualización de stock con stock insuficiente."""
+    product = Product.objects.create(
+        catproCod=categoria_montura,
+        provCod=supplier,
+        prodDescr='Test',
+        prodMarca='M',
+        prodStock=3,
+        prodPrecioVenta=Decimal('100.00')
+    )
+    response = logistica_client.post(
+        f'/api/products/{product.prodCod}/update_stock/',
+        {'cantidad': 5, 'tipo': 'salida'}
+    )
+    assert response.status_code == 400
+    assert 'insuficiente' in response.data['error'].lower()
+
+
+@pytest.mark.django_db
+def test_buscar_config_missing_params(logistica_client):
+    """Prueba búsqueda de configuración sin parámetros."""
+    response = logistica_client.get('/api/lunas/configuracion/buscar/')
+    assert response.status_code == 400
+    assert 'requieren' in response.data['error'].lower()
+
+
+@pytest.mark.django_db
+def test_buscar_config_not_found(logistica_client):
+    """Prueba búsqueda de configuración no existente."""
+    response = logistica_client.get('/api/lunas/configuracion/buscar/?material=999&tipo=999')
+    assert response.status_code == 404
+    assert 'encontr' in response.data['error'].lower()
+
+
+@pytest.mark.django_db
+def test_calcular_precio_missing_material(logistica_client):
+    """Prueba cálculo de precio sin material."""
+    response = logistica_client.post('/api/lunas/calcular_precio/', {})
+    assert response.status_code == 400

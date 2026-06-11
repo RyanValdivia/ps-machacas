@@ -8,7 +8,11 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado"""
-    user = User.objects.create_user(usuNom="testadmin", usuEmail="admin@test.com", password="password123")
+    user = User.objects.create_user(
+        usuNom="testadmin",
+        usuEmail="admin@test.com",
+        usuContra="password123"
+    )
     api_client.force_authenticate(user=user)
     return api_client
 
@@ -253,4 +257,125 @@ def test_list_recipe_filtered_by_client(auth_client):
 
     assert resp.status_code == 200
     assert len(resp.data['data']) == 1
+
+
+# Tests adicionales para mejorar cobertura
+
+@pytest.mark.django_db
+def test_update_client_all_fields(auth_client):
+    """Prueba actualización completa de cliente con todos los campos."""
+    c = Client.objects.create(cliNumDoc='7777', cliNomCompleto='Original')
+    payload = {
+        'cliTipoDoc': 'RUC',
+        'cliNumDoc': '20222222222',
+        'cliNomCompleto': 'Actualizado Total',
+        'cliTelef': '999888777',
+        'cliFechaNac': '1995-10-20'
+    }
+    resp = auth_client.put(f'/api/clients/client/{c.cliCod}/', payload, format='json')
+    assert resp.status_code == 200
+    assert resp.data['data']['cliTipoDoc'] == 'RUC'
+    assert resp.data['data']['cliNumDoc'] == '20222222222'
+
+
+@pytest.mark.django_db
+def test_partial_update_client(auth_client):
+    """Prueba actualización parcial de cliente (PATCH)."""
+    c = Client.objects.create(cliNumDoc='8888', cliNomCompleto='Parcial')
+    resp = auth_client.patch(f'/api/clients/client/{c.cliCod}/', {'cliTelef': '555-1234'}, format='json')
+    assert resp.status_code == 200
+    assert resp.data['data']['cliTelef'] == '555-1234'
+
+
+@pytest.mark.django_db
+def test_delete_client(auth_client):
+    """Prueba eliminación de cliente."""
+    c = Client.objects.create(cliNomCompleto='Eliminar')
+    resp = auth_client.delete(f'/api/clients/client/{c.cliCod}/')
+    assert resp.status_code == 204
+    assert not Client.objects.filter(cliCod=c.cliCod).exists()
+
+
+@pytest.mark.django_db
+def test_list_clients_with_pagination(auth_client):
+    """Prueba listado de clientes con paginación."""
+    # Crear más de 10 clientes para activar paginación
+    for i in range(15):
+        Client.objects.create(cliNumDoc=f'{10000+i}', cliNomCompleto=f'Cliente {i}')
+
+    resp = auth_client.get('/api/clients/client/')
+    assert resp.status_code == 200
+    assert 'results' in resp.data
+    assert len(resp.data['results']) == 10  # page_size
+    assert resp.data['count'] == 15
+
+
+@pytest.mark.django_db
+def test_list_clients_without_pagination(auth_client):
+    """Prueba listado sin paginación (cuando hay pocos resultados)."""
+    for i in range(5):
+        Client.objects.create(cliNumDoc=f'{20000+i}', cliNomCompleto=f'Few {i}')
+
+    resp = auth_client.get('/api/clients/client/')
+    assert resp.status_code == 200
+    assert 'data' in resp.data
+    assert len(resp.data['data']) == 5
+
+
+@pytest.mark.django_db
+def test_partial_update_optometrist(auth_client):
+    """Prueba actualización parcial de optómetra."""
+    opt = Optometrist.objects.create(optNombre='Juan', optApellido='Perez')
+    resp = auth_client.patch(f'/api/clients/optometrist/{opt.optCod}/', {'optNombre': 'Carlos'})
+    assert resp.status_code == 200
+    assert resp.data['data']['optNombre'] == 'Carlos'
+
+
+@pytest.mark.django_db
+def test_partial_update_recipe(auth_client):
+    """Prueba actualización parcial de receta."""
+    c = Client.objects.create(cliNumDoc='9999', cliNomCompleto='Pac')
+    o = Optometrist.objects.create(optNombre='Dr', optApellido='Test')
+    r = Recipe.objects.create(cliCod=c, optCod=o, recEstado='Activo')
+
+    resp = auth_client.patch(f'/api/clients/prescription/{r.recCod}/', {'recEstado': 'Inactivo'})
+    assert resp.status_code == 200
+    assert resp.data['data']['recEstado'] == 'Inactivo'
+
+
+@pytest.mark.django_db
+def test_list_recipe_without_pagination(auth_client):
+    """Prueba listado de recetas sin paginación."""
+    c = Client.objects.create(cliNumDoc='1111', cliNomCompleto='Paciente')
+    o = Optometrist.objects.create(optNombre='Dr', optApellido='Receta')
+
+    for i in range(3):
+        Recipe.objects.create(cliCod=c, optCod=o)
+
+    resp = auth_client.get('/api/clients/prescription/')
+    assert resp.status_code == 200
+    assert len(resp.data['data']) == 3
+
+
+@pytest.mark.django_db
+def test_client_search_by_name(auth_client):
+    """Prueba búsqueda de cliente por nombre."""
+    Client.objects.create(cliNumDoc='3333', cliNomCompleto='Juan Perez')
+    Client.objects.create(cliNumDoc='4444', cliNomCompleto='Maria Lopez')
+
+    resp = auth_client.get('/api/clients/client/', {'search': 'Juan'})
+    assert resp.status_code == 200
+    assert any('JUAN PEREZ' in c.get('cliNomCompleto', '') for c in resp.data.get('results', resp.data.get('data', [])))
+
+
+@pytest.mark.django_db
+def test_client_search_by_document(auth_client):
+    """Prueba búsqueda de cliente por documento."""
+    Client.objects.create(cliNumDoc='5555', cliNomCompleto='Buscar Doc')
+
+    resp = auth_client.get('/api/clients/client/', {'search': '5555'})
+    assert resp.status_code == 200
+    results = resp.data.get('results', resp.data.get('data', []))
+    assert any('5555' in c.get('cliNumDoc', '') for c in results)
+
 

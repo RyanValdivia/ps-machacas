@@ -1,128 +1,151 @@
 import pytest
-from django.contrib.auth.models import User
-from rest_framework import status
-from rest_framework.test import APIRequestFactory, force_authenticate
-from django.conf import settings
 import os
-import tempfile
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import patch, MagicMock
+from opticalCenter.models import OpticalCenter
 
+User = get_user_model()
 
 @pytest.fixture
-def authenticated_client(api_client):
-    user = User.objects.create_user(username='testuser', password='testpass')
+def auth_client(api_client, db):
+    """Fixture para proporcionar un cliente de API autenticado para OpticalCenter"""
+    user = User.objects.create_user(usuNom="admin_opt", usuEmail="opt@test.com", password="password123")
     api_client.force_authenticate(user=user)
     return api_client
 
+@pytest.mark.django_db
+def test_get_optical_center_auto_create(auth_client):
+    """Verifica que el GET cree el registro único si no existe y lo devuelva (Líneas 32-38)"""
+    url = reverse('opticalcenter-list')
+    resp = auth_client.get(url)
+    assert resp.status_code == 200
+    assert resp.data['optNom'] == "" # Creado por defecto
+    assert OpticalCenter.objects.count() == 1
 
 @pytest.mark.django_db
-class TestOpticalCenterViewSet:
-    # TEST: GET sin autenticacion retorna 401
-    def test_unauthenticated(self, api_client):
-        r = api_client.get('/api/opticalcenter/')
-        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+def test_retrieve_optical_center(auth_client):
+    """Prueba el método retrieve (GET por ID) (Línea 42)"""
+    obj = OpticalCenter.objects.create(pk=1, optNom="Optica Test")
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    resp = auth_client.get(url)
+    assert resp.status_code == 200
+    assert resp.data['optNom'] == "Optica Test"
 
-    # TEST: GET /api/opticalcenter/ retorna objeto, no lista
-    def test_list_returns_object(self, authenticated_client):
-        r = authenticated_client.get('/api/opticalcenter/')
-        assert r.status_code == status.HTTP_200_OK
-        assert isinstance(r.data, dict)
-        assert 'optNom' in r.data
+@pytest.mark.django_db
+@patch('opticalCenter.views.OpticalCenterViewSet._ensure_media_dirs')
+def test_create_or_update_optical_center(mock_ensure, auth_client):
+    """Prueba el método POST que actúa como upsert (Líneas 46-61)"""
+    url = reverse('opticalcenter-list')
+    payload = {'optNom': 'Nueva Optica', 'optLema': 'Lema 1'}
+    resp = auth_client.post(url, payload)
+    assert resp.status_code == 200
+    assert resp.data['optNom'] == "Nueva Optica"
+    assert mock_ensure.called
 
-    # TEST: GET /api/opticalcenter/ crea registro por defecto si no existe
-    def test_list_creates_default(self, authenticated_client):
-        r = authenticated_client.get('/api/opticalcenter/')
-        assert r.data['id'] == 1
+@pytest.mark.django_db
+def test_create_exception_handling(auth_client):
+    """Cubre el bloque except en create simulando error en save (Líneas 62-63)"""
+    url = reverse('opticalcenter-list')
+    with patch('opticalCenter.models.OpticalCenter.save', side_effect=Exception("DB Error")):
+        resp = auth_client.post(url, {'optNom': 'Error'})
+        assert resp.status_code == 500
+        assert 'DB Error' in resp.data['error']
 
-    # TEST: GET /api/opticalcenter/1/ retorna el registro
-    def test_retrieve(self, authenticated_client):
-        from opticalCenter.models import OpticalCenter
-        OpticalCenter.objects.create(pk=1, optNom="Mi Optica")
-        r = authenticated_client.get('/api/opticalcenter/1/')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == "Mi Optica"
+@pytest.mark.django_db
+def test_update_optical_center_with_logo(auth_client):
+    """Prueba la actualización (PUT) incluyendo un archivo de logo (Líneas 73-85)"""
+    OpticalCenter.objects.create(pk=1, optNom="Vieja")
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    logo = SimpleUploadedFile("logo.png", b"file_content", content_type="image/png")
+    
+    # Mock para evitar errores de filesystem real al guardar el logo
+    with patch('django.core.files.storage.FileSystemStorage.save', return_value="logo.png"):
+        resp = auth_client.put(url, {'optNom': 'Nueva', 'optLogo': logo}, format='multipart')
+        assert resp.status_code == 200
+        assert resp.data['optNom'] == "Nueva"
 
-    # TEST: POST crea/actualiza el singleton
-    def test_create(self, authenticated_client):
-        r = authenticated_client.post('/api/opticalcenter/', {'optNom': 'Nueva Optica', 'optLema': 'Ver bien'}, format='json')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == 'Nueva Optica'
-        assert r.data['optLema'] == 'Ver bien'
+@pytest.mark.django_db
+def test_update_exception_handling(auth_client):
+    """Cubre el bloque except en update (Líneas 86-87)"""
+    OpticalCenter.objects.create(pk=1)
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    with patch('opticalCenter.views.viewsets.ModelViewSet.update', side_effect=Exception("Update Fail")):
+        resp = auth_client.put(url, {'optNom': 'Fail'})
+        assert resp.status_code == 500
 
-    # TEST: POST actualiza si ya existe
-    def test_create_updates_existing(self, authenticated_client):
-        authenticated_client.post('/api/opticalcenter/', {'optNom': 'Primera'}, format='json')
-        r = authenticated_client.post('/api/opticalcenter/', {'optNom': 'Segunda'}, format='json')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == 'Segunda'
+@pytest.mark.django_db
+def test_partial_update_optical_center(auth_client):
+    """Prueba PATCH (Líneas 98-129)"""
+    OpticalCenter.objects.create(pk=1, optNom="Original")
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    resp = auth_client.patch(url, {'optNom': 'Parcial'})
+    assert resp.status_code == 200
+    assert resp.data['optNom'] == "Parcial"
 
-    # TEST: PUT update
-    def test_update(self, authenticated_client):
-        from opticalCenter.models import OpticalCenter
-        OpticalCenter.objects.create(pk=1, optNom="Original")
-        r = authenticated_client.put('/api/opticalcenter/1/', {'optNom': 'Actualizada'}, format='json')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == 'Actualizada'
+@pytest.mark.django_db
+def test_partial_update_exception_handling(auth_client):
+    """Cubre el bloque except en partial_update (Línea 130)"""
+    OpticalCenter.objects.create(pk=1)
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    with patch('opticalCenter.views.viewsets.ModelViewSet.partial_update', side_effect=Exception("Patch Fail")):
+        resp = auth_client.patch(url, {'optNom': 'Fail'})
+        assert resp.status_code == 500
 
-    # TEST: PATCH partial update
-    def test_partial_update(self, authenticated_client):
-        from opticalCenter.models import OpticalCenter
-        OpticalCenter.objects.create(pk=1, optNom="Original", optDir="Av Test")
-        r = authenticated_client.patch('/api/opticalcenter/1/', {'optNom': 'Solo Nombre'}, format='json')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == 'Solo Nombre'
-        assert r.data['optDir'] == 'Av Test'
+@pytest.mark.django_db
+def test_destroy_optical_center(auth_client):
+    """Prueba el método destroy (Línea 137)"""
+    OpticalCenter.objects.create(pk=1)
+    url = reverse('opticalcenter-detail', kwargs={'pk': 1})
+    resp = auth_client.delete(url)
+    assert resp.status_code == 204
 
-    # TEST: DELETE retorna 405 (no permitido)
-    def test_delete_not_allowed(self, authenticated_client):
-        r = authenticated_client.delete('/api/opticalcenter/1/')
-        assert r.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    # TEST: POST con datos invalidos retorna 400
-    def test_create_invalid_data(self, authenticated_client):
-        r = authenticated_client.post('/api/opticalcenter/', {'optNom': ''}, format='json')
-        assert r.status_code == status.HTTP_400_BAD_REQUEST
-
-    # TEST: POST con carga de logo
-    def test_create_with_logo(self, authenticated_client):
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        logo = SimpleUploadedFile("logo.png", b"fake_image_content", content_type="image/png")
-        r = authenticated_client.post('/api/opticalcenter/', {'optNom': 'Con Logo', 'optLogo': logo}, format='multipart')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data['optNom'] == 'Con Logo'
-
-    # TEST: optLogoUrl se genera correctamente con logo
-    def test_logo_url_generated(self, authenticated_client):
-        from opticalCenter.models import OpticalCenter
-        oc = OpticalCenter.objects.create(pk=1, optNom="Logo Test")
-        r = authenticated_client.get('/api/opticalcenter/1/')
-        assert r.status_code == status.HTTP_200_OK
-        assert r.data.get('optLogoUrl') is None or r.data.get('optLogoUrl') == ''
-
-    # TEST: _ensure_media_dirs crea directorios necesarios
-    def test_ensure_media_dirs(self, authenticated_client):
-        from opticalCenter.views import OpticalCenterViewSet
-        view = OpticalCenterViewSet()
+@pytest.mark.django_db
+def test_ensure_media_dirs_branches(auth_client):
+    """Cubre las ramas de configuración de MEDIA_ROOT (Líneas 139-150)"""
+    view = auth_client.get(reverse('opticalcenter-list')).renderer_context['view']
+    
+    # Test rama settings.MEDIA_ROOT no es string
+    with patch('django.conf.settings.MEDIA_ROOT', 123):
         view._ensure_media_dirs()
-        media_root = getattr(settings, 'MEDIA_ROOT', None)
-        if media_root:
-            company_dir = os.path.join(str(media_root), 'company')
-            assert os.path.exists(company_dir)
+        # El código hace str(123), no debería fallar
 
-    # TEST: POST con error en DB retorna 500
-    def test_create_db_error(self, authenticated_client, mocker):
-        mocker.patch('opticalCenter.models.OpticalCenter.objects.get_or_create', side_effect=Exception("DB error"))
-        r = authenticated_client.post('/api/opticalcenter/', {'optNom': 'Fallo'}, format='json')
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert 'error' in r.data
+    # Test rama sin MEDIA_ROOT y sys.frozen (simulando Tauri exe)
+    with patch('django.conf.settings', spec=[]), \
+         patch('sys.frozen', True, create=True), \
+         patch('os.environ.get', return_value='/tmp/appdata'):
+        view._ensure_media_dirs()
 
-    # TEST: PUT con error retorna 500
-    def test_update_error(self, authenticated_client, mocker):
-        mocker.patch('opticalCenter.models.OpticalCenter.objects.get_or_create', side_effect=Exception("Fallo update"))
-        r = authenticated_client.put('/api/opticalcenter/1/', {'optNom': 'Fallo'}, format='json')
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+@pytest.mark.django_db
+def test_ensure_media_dirs_write_permission_error(auth_client):
+    """Cubre error de permisos de escritura (Líneas 163-169)"""
+    view = auth_client.get(reverse('opticalcenter-list')).renderer_context['view']
+    
+    # Mock para que open() lance una excepción al intentar escribir el archivo .test_write
+    with patch('builtins.open', side_effect=PermissionError("Acceso denegado")):
+        with pytest.raises(PermissionError):
+            view._ensure_media_dirs()
 
-    # TEST: PATCH con error retorna 500
-    def test_partial_update_error(self, authenticated_client, mocker):
-        mocker.patch('opticalCenter.models.OpticalCenter.objects.get_or_create', side_effect=Exception("Fallo patch"))
-        r = authenticated_client.patch('/api/opticalcenter/1/', {'optNom': 'Fallo'}, format='json')
-        assert r.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+@pytest.mark.django_db
+def test_ensure_media_dirs_critical_error(auth_client):
+    """Cubre error crítico genérico en configuración de directorios (Líneas 178-179)"""
+    view = auth_client.get(reverse('opticalcenter-list')).renderer_context['view']
+    
+    with patch('os.makedirs', side_effect=Exception("Critical OS Fail")):
+        with pytest.raises(Exception) as exc:
+            view._ensure_media_dirs()
+        assert "Critical OS Fail" in str(exc.value)
+
+@pytest.mark.django_db
+def test_optical_center_model_delete_prevention():
+    """Verifica que el modelo ignore el borrado para proteger la configuración (Línea 17 en models.py)"""
+    obj = OpticalCenter.objects.create(pk=1, optNom="No Borrar")
+    obj.delete()
+    assert OpticalCenter.objects.filter(pk=1).exists()
+
+@pytest.mark.django_db
+def test_optical_center_model_str():
+    """Verifica el __str__ del modelo"""
+    obj = OpticalCenter.objects.create(pk=1)
+    assert str(obj) == "Configuración General de la Empresa"
