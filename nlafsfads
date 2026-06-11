@@ -1,0 +1,109 @@
+[33mcommit 724ebf3a9abef550f49286693341425f54b5d382[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/rvaldiviase[m[33m, [m[1;31morigin/qa[m[33m, [m[1;31morigin/feature/rvaldiviase[m[33m, [m[1;31morigin/feature/DeniseHuacani[m[33m, [m[1;31morigin/develop[m[33m)[m
+Author: RyanValdivia <rvaldiviase@unsa.edu.pe>
+Date:   Tue Jun 9 16:39:00 2026 -0500
+
+    ci(qa): make seed idempotent, always run with ON CONFLICT DO NOTHING
+
+[1mdiff --git a/.github/workflows/deploy-qa.yml b/.github/workflows/deploy-qa.yml[m
+[1mindex 4729374..3502991 100644[m
+[1m--- a/.github/workflows/deploy-qa.yml[m
+[1m+++ b/.github/workflows/deploy-qa.yml[m
+[36m@@ -158,13 +158,8 @@[m [mjobs:[m
+               echo "DB not ready, retrying in 2s..."[m
+               sleep 2[m
+             done[m
+[31m-            COUNT=$(docker exec registrame-qa-db psql -U postgres -d registrame_qa_db -t -A -c "SELECT COUNT(*) FROM users_user;" 2>/dev/null || echo "error")[m
+[31m-            if [ "$COUNT" = "0" ]; then[m
+[31m-              echo "Empty DB detected, seeding..."[m
+[31m-              docker exec -i registrame-qa-db psql -U postgres -d registrame_qa_db < database_seed.sql[m
+[31m-              echo "Seed complete."[m
+[31m-            else[m
+[31m-              echo "DB has data or table not ready (count=$COUNT), skipping seed."[m
+[31m-            fi[m
+[32m+[m[32m            echo "Running seed..."[m
+[32m+[m[32m            docker exec -i registrame-qa-db psql -U postgres -d registrame_qa_db < database_seed.sql[m
+[32m+[m[32m            echo "Seed complete."[m
+         env:[m
+           VPS_QA_APP_DIR: ${{ secrets.VPS_QA_APP_DIR }}[m
+[1mdiff --git a/database_seed.sql b/database_seed.sql[m
+[1mindex fa46fdc..e3b33c6 100644[m
+[1m--- a/database_seed.sql[m
+[1m+++ b/database_seed.sql[m
+[36m@@ -1,30 +1,20 @@[m
+[31m--- Seed data for RegistraMe (PostgreSQL compatible)[m
+[32m+[m[32m-- Seed data for RegistraMe (PostgreSQL compatible, idempotent)[m
+ -- Run AFTER migrations: docker compose exec backend python manage.py migrate[m
+ -- Usage: docker exec -i registrame-db psql -U postgres -d registrame_db < database_seed.sql[m
+ [m
+ BEGIN;[m
+ [m
+[31m--- Reset sequences for clean insert with explicit IDs[m
+[31m-ALTER TABLE "categories_productcategory" ALTER COLUMN "catproCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "suppliers_supplier" ALTER COLUMN "provCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "users_role" ALTER COLUMN "rolCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "users_user" ALTER COLUMN "usuCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "product" ALTER COLUMN "prodCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "product_sequence" ALTER COLUMN "id" RESTART WITH 1;[m
+[31m-ALTER TABLE "luna_material" ALTER COLUMN "lunMatCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "luna_tipo" ALTER COLUMN "lunTipCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "luna_caracteristica" ALTER COLUMN "lunCarCod" RESTART WITH 1;[m
+[31m-ALTER TABLE "luna_configuracion" ALTER COLUMN "lunConfCod" RESTART WITH 1;[m
+[31m-[m
+ -- Categories[m
+ INSERT INTO "categories_productcategory" ("catproCod","catproCode","catproNom","catproRequiereInventario") VALUES[m
+ (1,'AC','Accesorios',TRUE),[m
+ (2,'MO','Monturas',TRUE),[m
+[31m-(3,'LUNA','Lunas',FALSE);[m
+[32m+[m[32m(3,'LUNA','Lunas',FALSE)[m
+[32m+[m[32mON CONFLICT ("catproCod") DO NOTHING;[m
+ [m
+ -- Suppliers[m
+ INSERT INTO "suppliers_supplier" ("provCod","provRuc","provRazSocial","provDirec","provEmail","provCiu","provEstado","provTele") VALUES[m
+[31m-(1,'00000000000','Proveedor Genérico','No especificado','generico@proveedor.com','N/A','Active','999999999');[m
+[32m+[m[32m(1,'00000000000','Proveedor Genérico','No especificado','generico@proveedor.com','N/A','Active','999999999')[m
+[32m+[m[32mON CONFLICT ("provCod") DO NOTHING;[m
+ [m
+ -- Roles[m
+ INSERT INTO "users_role" ("rolCod","rolNom","rolDes","rolEstado","rolNivel") VALUES[m
+[36m@@ -32,19 +22,20 @@[m [mINSERT INTO "users_role" ("rolCod","rolNom","rolDes","rolEstado","rolNivel") VAL[m
+ (2,'CAJERO','Cajero','ACTIVO',2),[m
+ (3,'VENDEDOR','Vendedor','ACTIVO',2),[m
+ (4,'OPTOMETRA','Optometra','ACTIVO',4),[m
+[31m-(5,'LOGISTICA','Logística','ACTIVO',3);[m
+[32m+[m[32m(5,'LOGISTICA','Logística','ACTIVO',3)[m
+[32m+[m[32mON CONFLICT ("rolCod") DO NOTHING;[m
+ [m
+ -- Users (password: Admin123!)[m
+ INSERT INTO "users_user" ("last_login","is_superuser","usuCod","usuNom","password","usuNombreCom","usuDNI","usuTel","usuEmail","usuEstado","is_staff","is_active","date_joined") VALUES[m
+[31m-(NULL,TRUE,1,'admin','pbkdf2_sha256$1000000$kEmZkK2wQsvU6P4QI7fR85$RbQeZboInSNlqB/j/DQTklNoJINT4qk/iYwb1gZcYPY=','Administrador del Sistema','99999999','999999999','admin@registrame.com',TRUE,TRUE,TRUE,'2026-06-09 12:48:23.447794+00'),[m
+ (NULL,FALSE,2,'cajero1','pbkdf2_sha256$1000000$NkTao8VuXHLvozmVINzRTN$E6w5ia4Kx1mfFQOwgx9mncwJrVoNIvI1wXfs8H8rFhc=','Cajero de Prueba','88888888','888888888','cajero1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:24.214390+00'),[m
+[31m-(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00');[m
+[32m+[m[32m(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00')[m
+[32m+[m[32mON CONFLICT ("usuCod") DO NOTHING;[m
+ [m
+ -- User-Role assignments[m
+ INSERT INTO "users_user_roles" ("id","user_id","role_id") VALUES[m
+[31m-(1,1,1),[m
+ (2,2,2),[m
+[31m-(3,3,3);[m
+[32m+[m[32m(3,3,3)[m
+[32m+[m[32mON CONFLICT ("id") DO NOTHING;[m
+ [m
+ -- Products[m
+ INSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","prodColor","prodTalla","prodGenero","prodCostoInv","prodPrecioVenta","prodStock","prodStockMin","prodEstado","created_at","updated_at","catproCod_id","provCod_id","prodDescripcionAdicional","prodForma","prodTieneSobrelente") VALUES[m
+[36m@@ -63,7 +54,8 @@[m [mINSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","[m
+ (13,'M12','OZZY | 55-16-140 NEGRO BLANCO DORADO POLIGONAL - HZ8001 C5','OZZY','M','NEGRO BLANCO DORADO','55-16-140','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.236412+00','2026-06-09 12:48:15.236412+00',2,1,'HZ8001 C5','POLIGONAL',FALSE),[m
+ (14,'M13','OZZY | 52-18-140 NEGRO ROSA PLATEADO - HZ8003 C4','OZZY','M','NEGRO ROSA PLATEADO','52-18-140','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.250292+00','2026-06-09 12:48:15.250292+00',2,1,'HZ8003 C4','',FALSE),[m
+ (15,'M14','FEILLIS | 56-15-144 NEGRO AVIADOR [Con Sobrelente] - 8015 Doble Puente - 4 Sobrelentes','FEILLIS','M','NEGRO','56-15-144','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.263647+00','2026-06-09 12:48:15.263647+00',2,1,'8015 Doble Puente - 4 Sobrelentes','AVIADOR',TRUE),[m
+[31m-(16,'1','LUNA PERSONALIZADA','','N','','','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.275270+00','2026-06-09 12:48:15.275270+00',1,1,'LUNA PERSONALIZADA','',FALSE);[m
+[32m+[m[32m(16,'1','LUNA PERSONALIZADA','','N','','','Unisex',0,0,1,0,'Active','2026-06-09 12:48:15.275270+00','2026-06-09 12:48:15.275270+00',1,1,'LUNA PERSONALIZADA','',FALSE)[m
+[32m+[m[32mON CONFLICT ("prodCod") DO NOTHING;[m
+ [m
+ -- Product sequences[m
+ INSERT INTO "product_sequence" ("id","sequence_type","current_value","description","created_at","updated_at") VALUES[m
+[36m@@ -71,7 +63,8 @@[m [mINSERT INTO "product_sequence" ("id","sequence_type","current_value","descriptio[m
+ (2,'M',14,'Monturas de Metal','2026-06-09 12:46:47.894895+00','2026-06-09 12:46:47.894895+00'),[m
+ (3,'TR',0,'Monturas TR','2026-06-09 12:46:47.896899+00','2026-06-09 12:46:47.896899+00'),[m
+ (4,'C',0,'Monturas de Carey','2026-06-09 12:46:47.897896+00','2026-06-09 12:46:47.897896+00'),[m
+[31m-(5,'GENERAL',1,'Productos no monturas','2026-06-09 12:46:47.900273+00','2026-06-09 12:46:47.900273+00');[m
+[32m+[m[32m(5,'GENERAL',1,'Productos no monturas','2026-06-09 
