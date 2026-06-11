@@ -870,3 +870,55 @@ class TestVentaSerializers:
         serializer = VentaUpdateSerializer(data=data)
         # cliCod FK validation will fail but serializer structure is valid
         assert "cliCod" in serializer.fields
+
+
+# ==================== ADDITIONAL TESTS FOR COVERAGE ====================
+
+    def test_venta_list_view(self, auth_client, venta):
+        """Prueba listado de ventas."""
+        resp = auth_client.get("/api/sales/ventas/")
+        assert resp.status_code == 200
+
+    def test_venta_create_invalid_data(self, auth_client, product):
+        """Prueba creación de venta con datos inválidos."""
+        resp = auth_client.post("/api/sales/ventas/", {
+            "ventFormaPago": "EFECTIVO",
+            "detalles": []
+        }, format="json")
+        assert resp.status_code == 400
+
+    def test_venta_delete(self, auth_client, venta):
+        """Prueba eliminación de venta."""
+        resp = auth_client.delete(f"/api/sales/ventas/{venta.ventCod}/")
+        assert resp.status_code == 204
+
+    def test_venta_search(self, auth_client, venta):
+        """Prueba búsqueda de ventas."""
+        resp = auth_client.get("/api/sales/ventas/?search=Perez")
+        assert resp.status_code == 200
+
+    def test_detalle_anular_ya_anulado(self, auth_client, venta_detalle):
+        """Prueba anular detalle ya anulado."""
+        venta_detalle.ventDetAnulado = True
+        venta_detalle.save()
+        resp = auth_client.post(
+            f"/api/sales/ventas-detalle/{venta_detalle.ventDetCod}/anular_detalle/"
+        )
+        assert resp.status_code == 400
+
+    def test_pago_serializer_monto_negativo(self):
+        """Prueba validación de monto negativo."""
+        from sales.serializers import PagoSerializer
+        s = PagoSerializer(data={"monto": "-10", "forma_pago": "EFECTIVO"})
+        assert not s.is_valid()
+
+    def test_comprobante_serializer_fields(self):
+        """Prueba campos del serializer de comprobante."""
+        from sales.serializers import ComprobanteSerializer
+        assert "venta" in ComprobanteSerializer.fields
+        assert "comprNombreCliente" in ComprobanteSerializer.fields
+
+    def test_venta_detail_serializer_fields(self):
+        """Prueba campos del serializer de detalle de venta."""
+        from sales.serializers import VentaDetailSerializer
+        assert "detalles" in VentaDetailSerializer.fields
