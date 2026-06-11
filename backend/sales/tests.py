@@ -368,3 +368,394 @@ def test_nombre_cliente_sin_cliente(venta, usuario, apertura_caja):
     v = Venta.objects.create(usuCod=usuario, cajaAperCod=apertura_caja)
     assert v.nombre_cliente == "Cliente Generico"
 
+
+# ==================== VENTA DETALLE TESTS ====================
+
+# TEST: detalle calcular totales
+def test_detalle_calcular_totales(venta_detalle):
+    venta_detalle._calcular_totales()
+    assert venta_detalle.ventDetSubtotal == Decimal("200.00")
+    assert venta_detalle.ventDetTotal == Decimal("180.00")
+
+
+# TEST: detalle copiar datos desde producto
+def test_detalle_copiar_datos_producto(venta_detalle, producto):
+    venta_detalle.ventDetPrecioUni = None
+    venta_detalle.ventDetDescripcion = ""
+    venta_detalle._copiar_datos_producto()
+    assert venta_detalle.ventDetPrecioUni == Decimal("100.00")
+    assert venta_detalle.ventDetDescripcion == producto.prodDescr
+    assert venta_detalle.ventDetMarca == "MARCA"
+
+
+# TEST: detalle copiar datos luna personalizada completa
+def test_detalle_copiar_datos_luna_personalizada(venta, producto):
+    from sales.models import VentaDetalle
+    d = VentaDetalle(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=1,
+        ventDetPrecioUni=Decimal("200.00"),
+        esLunaPersonalizada=True,
+        lunaMaterial="ORGANICO",
+        lunaTipo="MONOFOCAL",
+        lunaCaracteristicas="Blue Block, Antireflejo",
+    )
+    d._copiar_datos_producto()
+    assert "LUNA" in d.ventDetDescripcion
+    assert "ORGANICO" in d.ventDetDescripcion
+    assert "MONOFOCAL" in d.ventDetDescripcion
+    assert d.ventDetMarca == "PERSONALIZADO"
+
+
+# TEST: detalle copiar datos luna personalizada incompleta
+def test_detalle_copiar_datos_luna_incompleta(venta, producto):
+    from sales.models import VentaDetalle
+    d = VentaDetalle(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=1,
+        esLunaPersonalizada=True,
+    )
+    d._copiar_datos_producto()
+    assert d.ventDetDescripcion == "LUNA PERSONALIZADA"
+    assert d.ventDetMarca == "PERSONALIZADO"
+
+
+# TEST: detalle devolver stock
+def test_detalle_devolver_stock(venta_detalle, producto):
+    producto.refresh_from_db()
+    stock_antes = producto.prodStock
+    venta_detalle.devolver_stock()
+    producto.refresh_from_db()
+    assert producto.prodStock == stock_antes + 2
+
+
+# TEST: detalle validar stock insuficiente
+def test_detalle_validar_stock_insuficiente(venta, producto):
+    from sales.models import VentaDetalle
+    producto.prodStock = 1
+    producto.save()
+    d = VentaDetalle(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=5,
+        ventDetPrecioUni=Decimal("10.00"),
+    )
+    with pytest.raises(ValidationError, match="Stock insuficiente"):
+        d.clean()
+
+
+# TEST: detalle validar stock suficiente
+def test_detalle_validar_stock_suficiente(venta, producto):
+    from sales.models import VentaDetalle
+    d = VentaDetalle(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=1,
+        ventDetPrecioUni=Decimal("10.00"),
+    )
+    d.clean()
+
+
+# TEST: detalle no valida stock para luna personalizada
+def test_detalle_validar_stock_luna(venta, producto):
+    from sales.models import VentaDetalle
+    d = VentaDetalle(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=999,
+        ventDetPrecioUni=Decimal("200.00"),
+        esLunaPersonalizada=True,
+    )
+    d.clean()
+
+
+# TEST: detalle save actualiza stock
+def test_detalle_save_actualiza_stock(venta, producto):
+    from sales.models import VentaDetalle
+    producto.refresh_from_db()
+    stock_antes = producto.prodStock
+    d = VentaDetalle.objects.create(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=3,
+        ventDetPrecioUni=Decimal("50.00"),
+    )
+    producto.refresh_from_db()
+    assert producto.prodStock == stock_antes - 3
+
+
+# TEST: detalle save luna personalizada no descuenta stock
+def test_detalle_save_luna_no_resta_stock(venta, producto):
+    from sales.models import VentaDetalle
+    producto.refresh_from_db()
+    stock_antes = producto.prodStock
+    VentaDetalle.objects.create(
+        ventCod=venta,
+        prodCod=producto,
+        ventDetCantidad=1,
+        ventDetPrecioUni=Decimal("200.00"),
+        esLunaPersonalizada=True,
+    )
+    producto.refresh_from_db()
+    assert producto.prodStock == stock_antes
+
+
+# ==================== COMPROBANTE TESTS ====================
+
+# TEST: comprobante asignar correlativo inicial
+def test_comprobante_correlativo_inicial(venta):
+    from sales.models import Comprobante
+    c = Comprobante(ventCod=venta)
+    c._asignar_correlativo()
+    assert c.comprCorrelativo == 1
+    assert c.comprSerie == "NV01"
+
+
+# TEST: comprobante asignar correlativo siguiente
+def test_comprobante_correlativo_siguiente(venta):
+    from sales.models import Comprobante
+    c1 = Comprobante.objects.create(ventCod=venta)
+    venta2 = Venta.objects.get(pk=venta.pk)
+    # Need a different venta for second comprobante
+    from users.models import User
+    from cash.models import CashOpening
+    user2 = User.objects.create(usuNom="test3", usuEmail="test3@test.com", usuNombreCom="Test3", password="pass")
+    co = CashOpening.objects.first()
+    venta2 = venta.__class__.objects.create(usuCod=user2, cajaAperCod=co)
+    c2 = Comprobante(ventCod=venta2)
+    c2._asignar_correlativo()
+    assert c2.comprCorrelativo == 2
+
+
+# TEST: comprobante copiar datos de venta con cliente
+def test_comprobante_copiar_datos_venta(venta, cliente):
+    from sales.models import Comprobante
+    c = Comprobante(ventCod=venta)
+    c._copiar_datos_venta()
+    assert c.comprNombreCliente == cliente.cliNomCompleto
+    assert c.comprDocumentoCliente == f"DNI: {cliente.cliNumDoc}"
+    assert c.comprSubtotal == venta.ventSubTotal
+    assert c.comprDescuento == venta.ventDescuento
+    assert c.comprTotal == venta.ventTotal
+
+
+# TEST: comprobante copiar datos de venta sin cliente
+def test_comprobante_copiar_datos_venta_sin_cliente(usuario, apertura_caja):
+    from sales.models import Venta, Comprobante
+    v = Venta.objects.create(usuCod=usuario, cajaAperCod=apertura_caja)
+    c = Comprobante(ventCod=v)
+    c._copiar_datos_venta()
+    assert c.comprNombreCliente == "Cliente Generico"
+    assert c.comprDocumentoCliente == ""
+
+
+# TEST: comprobante completo property
+def test_comprobante_completo_property(venta):
+    from sales.models import Comprobante
+    c = Comprobante.objects.create(ventCod=venta)
+    assert c.comprobante_completo == f"NV01-{str(c.comprCorrelativo).zfill(8)}"
+
+
+# ==================== SERIALIZER TESTS ====================
+
+# TEST: VentaDetalleCreateSerializer validate cantidad
+def test_serializer_valida_cantidad_cero():
+    from sales.serializers import VentaDetalleCreateSerializer
+    s = VentaDetalleCreateSerializer(data={"ventDetCantidad": 0})
+    assert not s.is_valid()
+    assert "ventDetCantidad" in s.errors
+
+
+# TEST: VentaDetalleCreateSerializer validate stock insuficiente
+def test_serializer_valida_stock(producto):
+    from sales.serializers import VentaDetalleCreateSerializer
+    producto.prodStock = 0
+    producto.save()
+    data = {
+        "prodCod": producto.prodCod,
+        "ventDetCantidad": 1,
+        "esLunaPersonalizada": False,
+    }
+    s = VentaDetalleCreateSerializer(data=data)
+    assert not s.is_valid()
+    assert "ventDetCantidad" in s.errors
+
+
+# TEST: VentaDetalleCreateSerializer requiere precio para lunas
+def test_serializer_luna_requiere_precio(producto):
+    from sales.serializers import VentaDetalleCreateSerializer
+    data = {
+        "prodCod": producto.prodCod,
+        "ventDetCantidad": 1,
+        "esLunaPersonalizada": True,
+    }
+    s = VentaDetalleCreateSerializer(data=data)
+    assert not s.is_valid()
+    assert "ventDetPrecioUni" in s.errors
+
+
+# TEST: PagoSerializer valida monto
+def test_pago_serializer_valida_monto():
+    from sales.serializers import PagoSerializer
+    s = PagoSerializer(data={"monto": 0, "forma_pago": "EFECTIVO"})
+    assert not s.is_valid()
+
+
+# TEST: PagoSerializer valida forma_pago
+def test_pago_serializer_valida_forma_pago():
+    from sales.serializers import PagoSerializer
+    s = PagoSerializer(data={"monto": 100, "forma_pago": "INVALIDO"})
+    assert not s.is_valid()
+
+
+# TEST: VentaCreateSerializer valida detalles vacios
+def test_venta_create_serializer_valida_detalles():
+    from sales.serializers import VentaCreateSerializer
+    s = VentaCreateSerializer(data={"detalles": []})
+    assert not s.is_valid()
+    assert "detalles" in s.errors
+
+
+# TEST: LunaCaracteristicasField convierte array a string
+def test_luna_caracteristicas_field_to_internal_value_lista_vacia():
+    from sales.serializers import LunaCaracteristicasField
+    field = LunaCaracteristicasField()
+    assert field.to_internal_value([]) == ""
+    assert field.to_internal_value("texto") == "texto"
+    assert field.to_internal_value(None) == ""
+
+
+# ==================== FILTER TESTS ====================
+
+# TEST: VentaFilter cliente_nombre
+def test_filter_cliente_nombre(venta, cliente):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"cliente_nombre": "Cliente Test"}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter cliente_nombre sin match
+def test_filter_cliente_nombre_sin_match(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"cliente_nombre": "No Existe"}, queryset=qs)
+    assert f.is_valid()
+    assert f.qs.count() == 0
+
+
+# TEST: VentaFilter cliente_doc
+def test_filter_cliente_doc(venta, cliente):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"cliente_doc": "12345678"}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter vendedor
+def test_filter_vendedor(venta, usuario):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"vendedor": "vendedor1"}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter estado
+def test_filter_estado(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"estado": "PENDIENTE"}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter con_saldo true
+def test_filter_con_saldo_true(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    venta.ventSaldo = Decimal("100.00")
+    venta.save()
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"con_saldo": True}, queryset=qs)
+    assert f.is_valid()
+    assert f.qs.count() == 1
+
+
+# TEST: VentaFilter con_saldo false
+def test_filter_con_saldo_false(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    venta.ventSaldo = Decimal("0")
+    venta.save()
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"con_saldo": False}, queryset=qs)
+    assert f.is_valid()
+    assert f.qs.count() == 1
+
+
+# TEST: VentaFilter forma_pago
+def test_filter_forma_pago(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    venta.ventFormaPago = "EFECTIVO"
+    venta.save()
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"forma_pago": "EFECTIVO"}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter total_min
+def test_filter_total_min(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    venta.ventTotal = Decimal("180.00")
+    venta.save()
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"total_min": 100}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter total_max
+def test_filter_total_max(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    venta.ventTotal = Decimal("180.00")
+    venta.save()
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"total_max": 200}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter anuladas
+def test_filter_anuladas(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"anuladas": False}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
+
+
+# TEST: VentaFilter fecha_desde y fecha_hasta
+def test_filter_fechas(venta):
+    from sales.filters import VentaFilter
+    from sales.models import Venta
+    desde = (timezone.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    hasta = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    qs = Venta.objects.all()
+    f = VentaFilter(data={"fecha_desde": desde, "fecha_hasta": hasta}, queryset=qs)
+    assert f.is_valid()
+    assert venta.ventCod in [v.ventCod for v in f.qs]
