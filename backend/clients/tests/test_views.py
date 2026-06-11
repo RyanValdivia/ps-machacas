@@ -85,7 +85,7 @@ def test_optometrist_viewset_crud(auth_client):
     # Test List
     resp = auth_client.get('/api/clients/optometrist/')
     assert resp.status_code == 200
-    assert len(resp.data['results']) >= 1
+    assert len(resp.data['data']) >= 1
 
     # Test Update
     resp = auth_client.put(f'/api/clients/optometrist/{opt_id}/', {'optNombre': 'Carlos Alberto', 'optApellido': 'Santana'})
@@ -113,4 +113,4 @@ def test_recipe_viewset_create_and_list(auth_client):
     # Test List with Filter
     resp = auth_client.get(f'/api/clients/prescription/?cliCod={client.cliCod}')
     assert resp.status_code == 200
-    assert len(resp.data['results']) == 1
+    assert len(resp.data['data']) == 1
