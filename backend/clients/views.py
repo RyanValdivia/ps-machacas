@@ -7,7 +7,7 @@ from .serializers import ClientSerializer, OptometristSerializer, RecipeSerializ
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .filters import ClientFilter
+from .filters import ClientFilter, RecipeFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, permission_classes
@@ -148,7 +148,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all().order_by('-recFech')
     serializer_class = RecipeSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['cliCod']   
+    filterset_class = RecipeFilter
     # Habilitamos campos de búsqueda para que el frontend (?search=juan) funcione
     search_fields = ['recFech', 'recEstado', 'recObservaciones', 'recInfoExtra', 'receDIP', 'receDIPCerca', 'receAdd', 'receEsfeOD', 'receCilinOD', 'receEjeOD', 'receAvccOD', 'receEsfeOI', 'receCilinOI', 'receEjeOI', 'receAvccOI', 'receEsExterna', 'diagnostico', 'cliCod__cliNomCompleto', 'cliCod__cliNumDoc', 'receOptometra__optNombre', 'receOptometra__optApellido'] 
 

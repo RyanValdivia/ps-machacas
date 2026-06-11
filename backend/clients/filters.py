@@ -1,7 +1,7 @@
 import django_filters
 from django.utils import timezone
 from datetime import timedelta
-from .models import Client
+from .models import Client, Recipe
 
 class ClientFilter(django_filters.FilterSet):
     """Filtros personalizados para clientes"""
@@ -45,3 +45,11 @@ class ClientFilter(django_filters.FilterSet):
             except (ValueError, TypeError):
                 pass
         return queryset
+
+
+class RecipeFilter(django_filters.FilterSet):
+    cliCod = django_filters.NumberFilter(field_name='cliCod')
+
+    class Meta:
+        model = Recipe
+        fields = ['cliCod']
