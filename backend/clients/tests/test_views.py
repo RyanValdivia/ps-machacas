@@ -8,6 +8,7 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado"""
+
     user = User.objects.create_user(
         usuNom="testadmin",
         usuEmail="admin@test.com",
@@ -377,5 +378,4 @@ def test_client_search_by_document(auth_client):
     assert resp.status_code == 200
     results = resp.data.get('results', resp.data.get('data', []))
     assert any('5555' in c.get('cliNumDoc', '') for c in results)
-
 
