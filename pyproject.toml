@@ -18,6 +18,8 @@ omit = [
     "*/apps.py",
     "*/admin.py",
     "*/__init__.py",
+    "backend/_check_db.py",
+    "backend/run_server.py",
 ]
 
 [tool.coverage.report]
