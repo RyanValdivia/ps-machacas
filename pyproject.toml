@@ -4,9 +4,10 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short --strict-markers"
+pythonpath = "backend"
 
 [tool.coverage.run]
-source = ["."]
+source = ["backend"]
 omit = [
     "*/migrations/*",
     "*/tests/*",
