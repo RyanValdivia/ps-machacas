@@ -39,3 +39,45 @@ def test_edad_max_filter_includes_expected():
     qs = Client.objects.all()
     f = ClientFilter({'edad_max': str(edad)}, queryset=qs)
     assert c in f.qs
+
+
+
+@pytest.mark.django_db
+def test_edad_min_filter_with_invalid_value():
+    """Verifica que el filtro de edad mínima ignore valores no numéricos."""
+    qs = Client.objects.all()
+    f = ClientFilter({}, queryset=qs)
+
+    result = f.filter_edad_min(qs, 'edad_min', 'no_es_numero')
+
+    assert result.count() == qs.count()
+
+@pytest.mark.django_db
+def test_edad_max_filter_with_invalid_value():
+    """Verifica que el filtro de edad máxima ignore valores no numéricos."""
+    qs = Client.objects.all()
+    f = ClientFilter({}, queryset=qs)
+
+    result = f.filter_edad_max(qs, 'edad_max', 'no_es_numero')
+
+    assert result.count() == qs.count()
+
+@pytest.mark.django_db
+def test_edad_min_filter_with_empty_value():
+    """Verifica que el filtro de edad mínima no altere el queryset cuando recibe un valor vacío."""
+    qs = Client.objects.all()
+    f = ClientFilter({}, queryset=qs)
+
+    result = f.filter_edad_min(qs, 'edad_min', '')
+
+    assert result.count() == qs.count()
+
+@pytest.mark.django_db
+def test_edad_min_filter_with_none_value():
+    """Verifica que el filtro de edad mínima no altere el queryset cuando recibe None."""
+    qs = Client.objects.all()
+    f = ClientFilter({}, queryset=qs)
+
+    result = f.filter_edad_min(qs, 'edad_min', None)
+
+    assert result.count() == qs.count()
