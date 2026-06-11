@@ -842,3 +842,215 @@ class TestViews(TestCase):
         c = self._auth_client()
         resp = c.get("/api/sales/imprimir/test/")
         assert resp.status_code == 200
+
+    # TEST: venta partial_update
+    def test_venta_partial_update_ok(self):
+        c = self._auth_client()
+        resp = c.patch(f"/api/sales/ventas/{self.venta.ventCod}/", {"ventObservaciones": "Actualizado"}, format="json")
+        assert resp.status_code == 200
+
+    # TEST: venta update
+    def test_venta_update_ok(self):
+        from clients.models import Client
+        otro = Client.objects.create(cliTipoDoc="DNI", cliNumDoc="87654321", cliNomCompleto="Otro Cliente")
+        c = self._auth_client()
+        resp = c.put(f"/api/sales/ventas/{self.venta.ventCod}/", {"cliCod": otro.cliCod, "ventObservaciones": "Put"}, format="json")
+        assert resp.status_code == 200
+
+    # TEST: venta create cliente generico
+    def test_venta_create_cliente_generico(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/ventas/", {
+            "detalles": [{"prodCod": self.producto.pk, "ventDetCantidad": 1, "ventDetPrecioUni": "100.00"}],
+        }, format="json")
+        assert resp.status_code == 201
+
+    # TEST: venta create sin documento
+    def test_venta_create_sin_documento(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/ventas/", {
+            "cliente": {"cliNomCompleto": "Solo Nombre"},
+            "detalles": [{"prodCod": self.producto.pk, "ventDetCantidad": 1, "ventDetPrecioUni": "100.00"}],
+        }, format="json")
+        assert resp.status_code == 201
+
+    # TEST: venta create invalido
+    def test_venta_create_invalido(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/ventas/", {}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: anular_detalle ya anulado
+    def test_anular_detalle_ya_anulado(self):
+        from sales.models import VentaDetalle
+        detalle = VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+        )
+        c = self._auth_client()
+        c.post(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/anular_detalle/")
+        resp = c.post(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/anular_detalle/")
+        assert resp.status_code == 400
+
+    # TEST: actualizar_laboratorio no luna
+    def test_actualizar_laboratorio_no_luna(self):
+        from sales.models import VentaDetalle
+        detalle = VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+        )
+        c = self._auth_client()
+        resp = c.patch(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/actualizar_laboratorio/",
+                       {"lunaCostoLaboratorio": 150}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: ventas-detalle list
+    def test_venta_detalle_list(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas-detalle/")
+        assert resp.status_code == 200
+
+    # TEST: estadisticas_dashboard
+    def test_estadisticas_dashboard_ok(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/estadisticas_dashboard/")
+        assert resp.status_code == 200
+
+
+class TestPrinter(TestCase):
+    # TEST: generar ticket minimo
+    def test_generar_ticket_minimo(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({"folio": "001", "fecha": "2024-01-01"})
+        assert ticket.startswith(b'\x1b@')
+        assert ticket.endswith(b'\x1dV\x01')
+        assert b"001" in ticket
+        assert b"2024-01-01" in ticket
+        assert b"OPTICA VISION IDEAL" in ticket
+
+    # TEST: generar ticket con vendedor y cliente
+    def test_generar_ticket_con_vendedor_cliente(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "002", "fecha": "2024-06-11",
+            "vendedor": "Juan", "cliente": "Pedro",
+        })
+        assert b"Juan" in ticket
+        assert b"Pedro" in ticket
+
+    # TEST: generar ticket con productos
+    def test_generar_ticket_con_productos(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "003", "fecha": "2024-06-11",
+            "subtotal": 200, "total": 180,
+            "productos": [
+                {"cantidad": 2, "nombre": "PRODUCTO A", "subtotal": 100},
+                {"cantidad": 1, "nombre": "PRODUCTO B", "subtotal": 80},
+            ],
+        })
+        assert b"PRODUCTO A" in ticket
+        assert b"PRODUCTO B" in ticket
+
+    # TEST: generar ticket con descuento en producto
+    def test_generar_ticket_con_descuento_producto(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "004", "fecha": "2024-06-11",
+            "subtotal": 100, "descuento": 10, "total": 90,
+            "productos": [{"cantidad": 1, "nombre": "PROD", "subtotal": 100, "descuento": 10}],
+        })
+        assert b"Desc:" in ticket
+
+    # TEST: generar ticket con adelanto y saldo
+    def test_generar_ticket_adelanto_saldo(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "005", "fecha": "2024-06-11",
+            "total": 100, "adelanto": 30,
+            "productos": [{"cantidad": 1, "nombre": "PROD", "subtotal": 100}],
+        })
+        assert b"Adelanto" in ticket
+        assert b"Saldo" in ticket
+        assert b"PENDIENTE" in ticket
+
+    # TEST: generar ticket con adelanto cancelado
+    def test_generar_ticket_adelanto_cancelado(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "006", "fecha": "2024-06-11",
+            "total": 100, "adelanto": 100,
+            "productos": [{"cantidad": 1, "nombre": "PROD", "subtotal": 100}],
+        })
+        assert b"CANCELADO" in ticket
+        assert b"Saldo" not in ticket
+
+    # TEST: generar ticket con metodo de pago
+    def test_generar_ticket_con_metodo_pago(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "007", "fecha": "2024-06-11",
+            "total": 100, "adelanto": 100,
+            "metodo_pago": "EFECTIVO",
+            "productos": [{"cantidad": 1, "nombre": "PROD", "subtotal": 100}],
+        })
+        assert b"EFECTIVO" in ticket
+
+    # TEST: generar ticket con observaciones
+    def test_generar_ticket_con_observaciones(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "008", "fecha": "2024-06-11",
+            "observaciones": "Nota de prueba",
+        })
+        assert b"OBS:" in ticket
+        assert b"Nota de prueba" in ticket
+
+    # TEST: generar ticket con nombre multilinea
+    def test_generar_ticket_nombre_multilinea(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        ticket = imp._generar_ticket({
+            "folio": "009", "fecha": "2024-06-11",
+            "subtotal": 200, "total": 200,
+            "productos": [{"cantidad": 1, "nombre": "LUNAS\nMATERIAL: CR39\nTIPO: PROGRESIVO", "subtotal": 200}],
+        })
+        assert b"LUNAS" in ticket
+        assert b"CR39" in ticket
+        assert b"PROGRESIVO" in ticket
+
+    # TEST: encode
+    def test_encode(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        result = imp._encode("Hola Mundo 123")
+        assert isinstance(result, bytes)
+        assert b"Hola Mundo 123" in result
+
+    # TEST: enviar a impresora falla
+    def test_enviar_a_impresora(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        result = imp._enviar_a_impresora(b"test")
+        assert isinstance(result, dict)
+        assert "success" in result
+
+    # TEST: imprimir_ticket_venta captura error
+    def test_imprimir_ticket_venta_error(self):
+        from sales.printer import ImpresoraTermica
+        imp = ImpresoraTermica()
+        def failing_send(comandos):
+            raise Exception("Simulated")
+        imp._enviar_a_impresora = failing_send
+        result = imp.imprimir_ticket_venta({"folio": "999"})
+        assert result.get("success") is False
