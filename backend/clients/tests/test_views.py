@@ -8,7 +8,7 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado"""
-    user = User.objects.create_user(usuNom="testadmin", usuEmail="admin@test.com", password="password123")
+    user = User.objects.create_user(usuNom="testadmin", usuContra="password123", usuEmail="admin@test.com")
     api_client.force_authenticate(user=user)
     return api_client
 
@@ -253,4 +253,3 @@ def test_list_recipe_filtered_by_client(auth_client):
 
     assert resp.status_code == 200
     assert len(resp.data['data']) == 1
-
