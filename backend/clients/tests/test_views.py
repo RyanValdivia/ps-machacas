@@ -74,43 +74,107 @@ def test_buscar_cliente_por_documento_multiple_objects(monkeypatch, auth_client)
     assert 'múltiples' in resp.data.get('error', '').lower()
 
 @pytest.mark.django_db
-def test_optometrist_viewset_crud(auth_client):
-    """Prueba el flujo CRUD completo (crear, listar y actualizar) para el modelo de Optómetras."""
-    # Test Create
-    payload = {'optNombre': 'Carlos', 'optApellido': 'Santana'}
-    resp = auth_client.post('/api/clients/optometrist/', payload)
-    assert resp.status_code == 201
-    opt_id = resp.data['data']['optCod']
+def test_create_optometrist_view(auth_client):
+    """Verifica la creación de un optómetra mediante la API."""
+    payload = {
+        'optNombre': 'Carlos',
+        'optApellido': 'Santana'
+    }
 
-    # Test List
+    resp = auth_client.post('/api/clients/optometrist/', payload)
+
+    assert resp.status_code == 201
+    assert resp.data['success'] is True
+    assert resp.data['data']['optNombre'] == 'Carlos'
+
+
+@pytest.mark.django_db
+def test_list_optometrists_view(auth_client):
+    """Verifica que el endpoint de listado de optómetras retorne registros correctamente."""
+    Optometrist.objects.create(
+        optNombre='Ana',
+        optApellido='Lopez'
+    )
+
     resp = auth_client.get('/api/clients/optometrist/')
+
     assert resp.status_code == 200
     assert len(resp.data['data']) >= 1
 
-    # Test Update
-    resp = auth_client.put(f'/api/clients/optometrist/{opt_id}/', {'optNombre': 'Carlos Alberto', 'optApellido': 'Santana'})
+
+@pytest.mark.django_db
+def test_update_optometrist_view(auth_client):
+    """Verifica la actualización de un optómetra existente."""
+    opt = Optometrist.objects.create(
+        optNombre='Carlos',
+        optApellido='Santana'
+    )
+
+    payload = {
+        'optNombre': 'Carlos Alberto',
+        'optApellido': 'Santana'
+    }
+
+    resp = auth_client.put(
+        f'/api/clients/optometrist/{opt.optCod}/',
+        payload
+    )
+
     assert resp.status_code == 200
     assert resp.data['data']['optNombre'] == 'Carlos Alberto'
 
+
 @pytest.mark.django_db
-def test_recipe_viewset_create_and_list(auth_client):
-    """Prueba la creación de una receta médica y verifica el filtrado por código de cliente."""
-    # Setup data
-    client = Client.objects.create(cliNumDoc='999888', cliNomCompleto='Paciente Prueba')
-    opt = Optometrist.objects.create(optNombre='Doc', optApellido='Prueba')
-    
-    # Test Create
+def test_create_recipe_view(auth_client):
+    """Verifica la creación de una receta médica mediante la API."""
+    client = Client.objects.create(
+        cliNumDoc='999888',
+        cliNomCompleto='Paciente Prueba'
+    )
+
+    opt = Optometrist.objects.create(
+        optNombre='Doc',
+        optApellido='Prueba'
+    )
+
     payload = {
         'cliCod': client.cliCod,
         'optCod': opt.optCod,
         'recObservaciones': 'Prueba de receta unitaria',
         'receDIP': 60
     }
-    resp = auth_client.post('/api/clients/prescription/', payload)
+
+    resp = auth_client.post(
+        '/api/clients/prescription/',
+        payload
+    )
+
     assert resp.status_code == 201
     assert resp.data['success'] is True
 
-    # Test List with Filter
-    resp = auth_client.get(f'/api/clients/prescription/?cliCod={client.cliCod}')
+
+@pytest.mark.django_db
+def test_list_recipe_filtered_by_client(auth_client):
+    """Verifica que el listado de recetas filtre correctamente por cliente."""
+    client = Client.objects.create(
+        cliNumDoc='999888',
+        cliNomCompleto='Paciente Prueba'
+    )
+
+    opt = Optometrist.objects.create(
+        optNombre='Doc',
+        optApellido='Prueba'
+    )
+
+    Recipe.objects.create(
+        cliCod=client,
+        optCod=opt,
+        recObservaciones='Receta de prueba'
+    )
+
+    resp = auth_client.get(
+        f'/api/clients/prescription/?cliCod={client.cliCod}'
+    )
+
     assert resp.status_code == 200
     assert len(resp.data['data']) == 1
