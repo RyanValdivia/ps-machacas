@@ -275,7 +275,7 @@ def test_actualizar_estado_anulado(venta):
 
 
 # TEST: registrar pago completo
-def test_registrar_pago(venta, apertura_caja):
+def test_registrar_pago(venta, venta_detalle, apertura_caja):
     venta.ventTotal = Decimal("180.00")
     venta.ventSaldo = Decimal("180.00")
     venta.cajaAperCod = apertura_caja
@@ -292,7 +292,7 @@ def test_registrar_pago(venta, apertura_caja):
 
 
 # TEST: registrar pago parcial
-def test_registrar_pago_parcial(venta, apertura_caja):
+def test_registrar_pago_parcial(venta, venta_detalle, apertura_caja):
     venta.ventTotal = Decimal("180.00")
     venta.ventSaldo = Decimal("180.00")
     venta.cajaAperCod = apertura_caja
@@ -334,10 +334,13 @@ def test_registrar_pago_venta_anulada(venta):
 
 
 # TEST: registrar pago sin caja abierta
-def test_registrar_pago_sin_caja(venta):
+def test_registrar_pago_sin_caja(venta, apertura_caja):
     venta.ventSaldo = Decimal("50.00")
-    venta.cajaAperCod = None
+    venta.ventTotal = Decimal("100.00")
+    venta.cajaAperCod = apertura_caja
     venta.save()
+    apertura_caja.cajaAperEstado = 'CERRADA'
+    apertura_caja.save()
     with pytest.raises(ValidationError, match="No hay una sesion de caja abierta"):
         venta.registrar_pago(monto=Decimal("50.00"), forma_pago="EFECTIVO")
 
@@ -515,15 +518,13 @@ def test_comprobante_correlativo_inicial(venta):
 
 # TEST: comprobante asignar correlativo siguiente
 def test_comprobante_correlativo_siguiente(venta):
-    from sales.models import Comprobante
+    from sales.models import Comprobante, Venta
     c1 = Comprobante.objects.create(ventCod=venta)
-    venta2 = Venta.objects.get(pk=venta.pk)
-    # Need a different venta for second comprobante
     from users.models import User
     from cash.models import CashOpening
     user2 = User.objects.create(usuNom="test3", usuEmail="test3@test.com", usuNombreCom="Test3", password="pass")
     co = CashOpening.objects.first()
-    venta2 = venta.__class__.objects.create(usuCod=user2, cajaAperCod=co)
+    venta2 = Venta.objects.create(usuCod=user2, cajaAperCod=co)
     c2 = Comprobante(ventCod=venta2)
     c2._asignar_correlativo()
     assert c2.comprCorrelativo == 2
