@@ -387,6 +387,10 @@ class ComprobanteSerializer(serializers.ModelSerializer):
     """Serializer para comprobante"""
     venta = VentaSerializer(source='ventCod', read_only=True)
     detalles = ComprobanteDetalleSerializer(many=True, read_only=True)
+    comprobante_completo = serializers.SerializerMethodField()
+
+    def get_comprobante_completo(self, obj):
+        return obj.comprobante_completo
     
     class Meta:
         model = Comprobante
@@ -395,9 +399,13 @@ class ComprobanteSerializer(serializers.ModelSerializer):
             'ventCod',
             'venta',
             'comprSerie',
-            'comprNumero',
-            'comprFecha',
+            'comprCorrelativo',
+            'comprobante_completo',
+            'comprFechaEmision',
+            'comprNombreCliente',
+            'comprDocumentoCliente',
             'comprSubtotal',
-            'comprIgv',
+            'comprDescuento',
             'comprTotal',
+            'comprAnulado',
             'detalles']

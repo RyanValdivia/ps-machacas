@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse, resolve
 
 
 class TestVentaModel(TestCase):
@@ -581,3 +582,263 @@ class TestFilters(TestCase):
         f = VentaFilter(data={"con_saldo": False}, queryset=Venta.objects.all())
         assert f.is_valid()
         assert f.qs.count() == 1
+
+
+class TestUrls(TestCase):
+    # TEST: resolve venta-list
+    def test_venta_list_url(self):
+        match = resolve("/api/sales/ventas/")
+        assert match.url_name == "venta-list"
+
+    # TEST: resolve venta-detail
+    def test_venta_detail_url(self):
+        match = resolve("/api/sales/ventas/1/")
+        assert match.url_name == "venta-detail"
+
+    # TEST: reverse venta-list
+    def test_venta_list_reverse(self):
+        assert reverse("venta-list") == "/api/sales/ventas/"
+
+    # TEST: resolve registrar_pago
+    def test_registrar_pago_url(self):
+        match = resolve("/api/sales/ventas/1/registrar_pago/")
+        assert match.url_name == "venta-registrar-pago"
+
+    # TEST: resolve anular
+    def test_anular_url(self):
+        match = resolve("/api/sales/ventas/1/anular/")
+        assert match.url_name == "venta-anular"
+
+    # TEST: resolve marcar_listo
+    def test_marcar_listo_url(self):
+        match = resolve("/api/sales/ventas/1/marcar_listo/")
+        assert match.url_name == "venta-marcar-listo"
+
+    # TEST: resolve marcar_entregado
+    def test_marcar_entregado_url(self):
+        match = resolve("/api/sales/ventas/1/marcar_entregado/")
+        assert match.url_name == "venta-marcar-entregado"
+
+    # TEST: resolve pendientes
+    def test_pendientes_url(self):
+        match = resolve("/api/sales/ventas/pendientes/")
+        assert match.url_name == "venta-pendientes"
+
+    # TEST: resolve del_dia
+    def test_del_dia_url(self):
+        match = resolve("/api/sales/ventas/del_dia/")
+        assert match.url_name == "venta-del-dia"
+
+    # TEST: resolve estadisticas_dashboard
+    def test_estadisticas_dashboard_url(self):
+        match = resolve("/api/sales/ventas/estadisticas_dashboard/")
+        assert match.url_name == "venta-estadisticas-dashboard"
+
+    # TEST: resolve venta-detalle-list
+    def test_venta_detalle_list_url(self):
+        match = resolve("/api/sales/ventas-detalle/")
+        assert match.url_name == "venta-detalle-list"
+
+    # TEST: resolve anular_detalle
+    def test_anular_detalle_url(self):
+        match = resolve("/api/sales/ventas-detalle/1/anular_detalle/")
+        assert match.url_name == "venta-detalle-anular-detalle"
+
+    # TEST: resolve actualizar_laboratorio
+    def test_actualizar_laboratorio_url(self):
+        match = resolve("/api/sales/ventas-detalle/1/actualizar_laboratorio/")
+        assert match.url_name == "venta-detalle-actualizar-laboratorio"
+
+    # TEST: resolve imprimir_ticket
+    def test_imprimir_ticket_url(self):
+        match = resolve("/api/sales/imprimir/")
+        assert match.url_name == "imprimir_ticket"
+
+    # TEST: resolve test_impresora
+    def test_test_impresora_url(self):
+        match = resolve("/api/sales/imprimir/test/")
+        assert match.url_name == "test_impresora"
+
+
+class TestViews(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from users.models import User
+        cls.user = User.objects.create_user(
+            usuNom="viewusr", usuEmail="view@test.com",
+            usuNombreCom="View User", usuContra="pass123",
+        )
+        from clients.models import Client
+        cls.cliente = Client.objects.create(cliTipoDoc="DNI", cliNumDoc="12345678", cliNomCompleto="View Client")
+        from cash.models import Cash, CashOpening
+        cls.caja = Cash.objects.create(cajNom="Caja View", usuCod=cls.user)
+        cls.apertura = CashOpening.objects.create(cajCod=cls.caja, usuCod=cls.user, cajaAperMontInicial=Decimal("500"))
+        from categories.models import ProductCategory
+        cls.categoria, _ = ProductCategory.objects.get_or_create(catproCode="MO", defaults={"catproNom": "Monturas"})
+        from suppliers.models import Supplier
+        cls.proveedor = Supplier.objects.create(provRazSocial="Prov View", provRuc="12345678901", provTele="999888777")
+        from products.models import Product
+        cls.producto = Product.objects.create(
+            catproCod=cls.categoria, provCod=cls.proveedor,
+            prodDescr="Producto View", prodMarca="MARCA",
+            prodPrecioVenta=Decimal("100.00"), prodStock=10,
+            prodMate="A", prodTalla="54",
+        )
+
+    def setUp(self):
+        from sales.models import Venta
+        self.venta = Venta.objects.create(usuCod=self.user, cliCod=self.cliente, cajaAperCod=self.apertura)
+        self.venta.ventSubTotal = Decimal("100.00")
+        self.venta.ventDescuento = Decimal("10.00")
+        self.venta.ventTotal = Decimal("90.00")
+        self.venta.ventSaldo = Decimal("30.00")
+        self.venta.ventAdelanto = Decimal("60.00")
+        self.venta.ventFormaPago = "EFECTIVO"
+        self.venta.save()
+
+    def _auth_client(self):
+        from rest_framework.test import APIClient
+        c = APIClient()
+        c.force_authenticate(user=self.user)
+        return c
+
+    # TEST: registrar_pago ok
+    def test_registrar_pago_ok(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/registrar_pago/", {"monto": 30, "forma_pago": "EFECTIVO"}, format="json")
+        assert resp.status_code == 200
+        assert "mensaje" in resp.data
+
+    # TEST: registrar_pago sin monto
+    def test_registrar_pago_sin_monto(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/registrar_pago/", {"forma_pago": "EFECTIVO"}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: anular venta ok
+    def test_anular_ok(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {"motivo": "Prueba"}, format="json")
+        assert resp.status_code == 200
+
+    # TEST: anular sin motivo
+    def test_anular_sin_motivo(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/anular/", {}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: marcar_listo ok
+    def test_marcar_listo_ok(self):
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/marcar_listo/")
+        assert resp.status_code == 200
+
+    # TEST: marcar_entregado ok
+    def test_marcar_entregado_ok(self):
+        self.venta.ventSaldo = Decimal("0")
+        self.venta.save()
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas/{self.venta.ventCod}/marcar_entregado/")
+        assert resp.status_code == 200
+
+    # TEST: pendientes lista
+    def test_pendientes_lista(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/pendientes/")
+        assert resp.status_code == 200
+
+    # TEST: del_dia lista
+    def test_del_dia_lista(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/del_dia/")
+        assert resp.status_code == 200
+
+    # TEST: comprobante sin comprobante
+    def test_comprobante_sin_comprobante(self):
+        c = self._auth_client()
+        resp = c.get(f"/api/sales/ventas/{self.venta.ventCod}/comprobante/")
+        assert resp.status_code == 404
+
+    # TEST: comprobante ok
+    def test_comprobante_ok(self):
+        from sales.models import Comprobante
+        Comprobante.objects.create(ventCod=self.venta)
+        c = self._auth_client()
+        resp = c.get(f"/api/sales/ventas/{self.venta.ventCod}/comprobante/")
+        assert resp.status_code == 200
+
+    # TEST: imprimir_ticket sin datos
+    def test_imprimir_ticket_sin_datos(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/imprimir/", {}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: imprimir_ticket sin productos
+    def test_imprimir_ticket_sin_productos(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/imprimir/", {"productos": [], "total": 100}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: imprimir_ticket sin total
+    def test_imprimir_ticket_sin_total(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/imprimir/", {"productos": [{"nombre": "P1"}], "total": 0}, format="json")
+        assert resp.status_code == 400
+
+    # TEST: imprimir_ticket venta no existe
+    def test_imprimir_ticket_venta_no_existe(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/imprimir/", {"venta_id": 99999, "productos": [{"nombre": "P1"}], "total": 100}, format="json")
+        assert resp.status_code == 404
+
+    # TEST: venta list ok
+    def test_venta_list_ok(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/")
+        assert resp.status_code == 200
+
+    # TEST: venta detail ok
+    def test_venta_detail_ok(self):
+        c = self._auth_client()
+        resp = c.get(f"/api/sales/ventas/{self.venta.ventCod}/")
+        assert resp.status_code == 200
+        assert resp.data.get("ventCod") == self.venta.ventCod
+
+    # TEST: venta delete
+    def test_venta_destroy(self):
+        c = self._auth_client()
+        resp = c.delete(f"/api/sales/ventas/{self.venta.ventCod}/")
+        assert resp.status_code == 204
+
+    # TEST: venta search
+    def test_venta_search(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/ventas/", {"search": "View"})
+        assert resp.status_code == 200
+
+    # TEST: venta create
+    def test_venta_create_ok(self):
+        c = self._auth_client()
+        resp = c.post("/api/sales/ventas/", {
+            "cliente": {"cliDocNum": "99999999", "cliNomCompleto": "Nuevo Cliente"},
+            "detalles": [{"prodCod": self.producto.pk, "ventDetCantidad": 1, "ventDetPrecioUni": "100.00"}],
+        }, format="json")
+        assert resp.status_code == 201
+
+    # TEST: anular_detalle ok
+    def test_anular_detalle_ok(self):
+        from sales.models import VentaDetalle
+        detalle = VentaDetalle.objects.create(
+            ventCod=self.venta, prodCod=self.producto,
+            ventDetCantidad=1, ventDetPrecioUni=Decimal("100.00"),
+            ventDetSubtotal=Decimal("100.00"), ventDetTotal=Decimal("100.00"),
+        )
+        c = self._auth_client()
+        resp = c.post(f"/api/sales/ventas-detalle/{detalle.ventDetCod}/anular_detalle/")
+        assert resp.status_code == 200
+
+    # TEST: test_impresora ok
+    def test_test_impresora_ok(self):
+        c = self._auth_client()
+        resp = c.get("/api/sales/imprimir/test/")
+        assert resp.status_code == 200
