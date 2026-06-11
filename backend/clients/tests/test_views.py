@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 from django.contrib.auth import get_user_model
 from clients.models import Client, Optometrist, Recipe
 
@@ -20,10 +21,18 @@ def test_create_client_view(auth_client):
     assert resp.data['success'] is True
     assert resp.data['data']['cliNomCompleto'] == 'NOMBRE PRUEBA'
 
+@pytest.mark.django_db
+def test_create_client_validation_error(auth_client):
+    """Cubre la línea de respuesta de error en la creación de clientes (e.g. falta nombre)."""
+    payload = {'cliNumDoc': '1111'}  # Payload inválido por falta de cliNomCompleto
+    resp = auth_client.post('/api/clients/client/', payload, format='json')
+    assert resp.status_code == 400
+    assert resp.data['success'] is False
+    assert 'cliNomCompleto' in resp.data['errors']
 
 @pytest.mark.django_db
 def test_update_client_view(auth_client):
-    """Prueba la actualización parcial de los datos de un cliente existente."""
+    """Prueba la actualización de los datos de un cliente existente."""
     c = Client(cliNumDoc='6666', cliNomCompleto='antiguo')
     c.save()
     payload = {'cliNomCompleto': 'nuevo nombre'}
@@ -32,16 +41,23 @@ def test_update_client_view(auth_client):
     assert resp.data['success'] is True
     assert resp.data['data']['cliNomCompleto'] == 'NUEVO NOMBRE'
 
+@pytest.mark.django_db
+def test_update_client_validation_error(auth_client):
+    """Cubre la línea de respuesta de error en la actualización de clientes."""
+    c = Client.objects.create(cliNomCompleto="Test")
+    resp = auth_client.put(f'/api/clients/client/{c.cliCod}/', {'cliNomCompleto': ''}, format='json')
+    assert resp.status_code == 400
+    assert resp.data['success'] is False
 
 @pytest.mark.django_db
 def test_list_clients_pagination(auth_client):
     """Verifica que el listado de clientes soporte paginación correctamente cuando hay múltiples registros."""
     for i in range(15):
         Client(cliNumDoc=str(7000 + i), cliNomCompleto=f'Cliente {i}').save()
-    resp = auth_client.get('/api/clients/client/')
+    resp = auth_client.get('/api/clients/client/', {'page': 1})
     assert resp.status_code == 200
-    # DRF devuelve paginación con 'results' por defecto; aceptar también la forma custom
-    assert 'results' in resp.data or 'data' in resp.data
+    # Al solicitar explícitamente la página, forzamos la ejecución del bloque de paginación
+    assert 'results' in resp.data
 
 @pytest.mark.django_db
 def test_buscar_cliente_por_documento_default_tipo(auth_client):
@@ -237,3 +253,4 @@ def test_list_recipe_filtered_by_client(auth_client):
 
     assert resp.status_code == 200
     assert len(resp.data['data']) == 1
+
