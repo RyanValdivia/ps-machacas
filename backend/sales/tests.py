@@ -872,6 +872,82 @@ class TestVentaSerializers:
         assert "cliCod" in serializer.fields
 
 
+# ==================== ADDITIONAL TESTS FOR SALES COVERAGE ====================
+
+    def test_venta_detalle_anular_detalle(self, venta_detalle):
+        """Prueba anular detalle de venta."""
+        venta_detalle.anular_detalle()
+        assert venta_detalle.ventDetAnulado is True
+
+    def test_comprobante_copiar_datos_venta(self, venta):
+        """Prueba copiar datos desde venta."""
+        from sales.models import Comprobante
+        venta.ventTotal = Decimal("200.00")
+        venta.save()
+        comp = Comprobante(ventCod=venta)
+        comp._copiar_datos_venta()
+        assert comp.comprNombreCliente == venta.nombre_cliente
+        assert comp.comprTotal == venta.ventTotal
+
+    def test_comprobante_asignar_correlativo(self, venta):
+        """Prueba asignación de correlativo."""
+        from sales.models import Comprobante
+        comp = Comprobante(ventCod=venta)
+        comp._asignar_correlativo()
+        assert comp.comprCorrelativo >= 1
+
+    def test_estadisticas_dashboard_ventas_caja(self, auth_client, venta):
+        """Prueba estadísticas de caja en dashboard."""
+        venta.ventTotal = Decimal("100.00")
+        venta.ventEstado = "PAGADO"
+        venta.save()
+        resp = auth_client.get("/api/sales/ventas/estadisticas_dashboard/")
+        assert "ventas_caja" in resp.data
+
+    def test_pago_serializer_validacion_monto(self):
+        """Prueba validación de monto en PagoSerializer."""
+        from sales.serializers import PagoSerializer
+        s = PagoSerializer(data={"monto": "50.50", "forma_pago": "EFECTIVO"})
+        assert s.is_valid()
+
+    def test_venta_list_search_varios(self, auth_client, venta):
+        """Prueba búsqueda con diferentes criterios."""
+        resp = auth_client.get("/api/sales/ventas/", {"search": "test"})
+        assert resp.status_code == 200
+
+    def test_venta_retrieve_not_found(self, auth_client):
+        """Prueba retrieve de venta inexistente."""
+        resp = auth_client.get("/api/sales/ventas/99999/")
+        assert resp.status_code == 404
+
+    def test_registrar_pago_actualiza_estado(self, auth_client, venta, cash_opening):
+        """Prueba que registrar pago actualiza estado."""
+        venta.ventSaldo = Decimal("100.00")
+        venta.ventTotal = Decimal("100.00")
+        venta.cajaAperCod = cash_opening
+        venta.save()
+
+        resp = auth_client.post(
+            f"/api/sales/ventas/{venta.ventCod}/registrar_pago/",
+            {"monto": "100.00", "forma_pago": "EFECTIVO"}
+        )
+        assert resp.status_code == 200
+        venta.refresh_from_db()
+        assert venta.ventEstado == "PAGADO"
+
+    def test_venta_serializer_has_total(self):
+        """Prueba que VentaSerializer tiene campo total."""
+        from sales.serializers import VentaSerializer
+        serializer = VentaSerializer()
+        assert "ventTotal" in serializer.fields
+
+    def test_detalle_serializer_has_cantidad(self):
+        """Prueba que VentaDetalleSerializer tiene cantidad."""
+        from sales.serializers import VentaDetalleSerializer
+        serializer = VentaDetalleSerializer()
+        assert "ventDetCantidad" in serializer.fields
+
+
 # ==================== ADDITIONAL TESTS FOR COVERAGE ====================
 
     def test_venta_list_view(self, auth_client, venta):
