@@ -57,10 +57,95 @@ jobs:
           DB_PASSWORD: test
           DB_HOST: localhost
           DB_PORT: 5432
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -r backend/requirements-dev.txt
+          pip install -r infra/shared/docker/backend/requirements.txt
+
+      - name: Apply migrations and seed database
+        run: |
+          python backend/manage.py migrate
+          PGPASSWORD=test psql -h localhost -U test -d test_db -f database_seed.sql
+        env:
+          DJANGO_SETTINGS_MODULE: registrame.settings_test
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: test_db
+          DB_USER: test
+          DB_PASSWORD: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+
+      - name: Start Django Backend server
+        run: |
+          python backend/manage.py runserver 8000 &
+        env:
+          DJANGO_SETTINGS_MODULE: registrame.settings_test
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: test_db
+          DB_USER: test
+          DB_PASSWORD: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: frontend
+
+      - name: Start Frontend server & run E2E tests
+        run: npx playwright test
+        working-directory: frontend
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, e2e]
     permissions:
       contents: read
       packages: write
