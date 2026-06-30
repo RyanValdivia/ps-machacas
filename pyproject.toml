@@ -5,6 +5,9 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short --strict-markers"
 pythonpath = "backend"
+markers = [
+    "integration: Integration tests for the system components."
+]
 
 [tool.coverage.run]
 source = ["backend"]
