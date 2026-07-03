@@ -258,3 +258,62 @@ class TestAuthenticationAndProxyIntegration:
         response = auth_client.get("/api/proxy/ruc?numero=123")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "error" in response.data
+
+
+@pytest.mark.django_db
+@pytest.mark.integration
+class TestVentasFaultInjection:
+    """
+    Inyeccion de fallas en la frontera Frontend -> API de Ventas (VentaViewSet.create /
+    registrar_pago), segun la Tarea de Analisis de Errores del Lab 08 (Caso 1 Sintactico
+    y Caso 2 Semantico). El Caso 3 (Resiliencia) se cubre en external_services/tests.py
+    sobre la frontera API -> proxy RENIEC/SUNAT, que es el unico punto del sistema que
+    depende de un servicio externo real.
+    """
+
+    def test_int_11_venta_cantidad_tipo_invalido(self, auth_client, product, cash_session):
+        """
+        INT-11 (Sintactico): envia texto ("dos") en ventDetCantidad, un campo IntegerField.
+        Verifica que la API rechace el desajuste de tipo con 400 en vez de propagarlo.
+        """
+        response = auth_client.post("/api/sales/ventas/", {
+            "ventFormaPago": "EFECTIVO",
+            "detalles": [
+                {
+                    "prodCod": product.prodCod,
+                    "ventDetCantidad": "dos",
+                    "ventDetPrecioUni": "20.00",
+                    "ventDetDescuento": 0,
+                }
+            ]
+        }, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_int_12_pago_monto_excede_saldo(self, auth_client, product, cash_session):
+        """
+        INT-12 (Semantico): el monto de pago es un numero valido (positivo, formato correcto)
+        pero fuera de la logica de negocio porque excede el saldo pendiente de la venta.
+        Verifica que Venta.registrar_pago() rechace el pago sin modificar el saldo.
+        """
+        response = auth_client.post("/api/sales/ventas/", {
+            "ventFormaPago": "EFECTIVO",
+            "detalles": [
+                {
+                    "prodCod": product.prodCod,
+                    "ventDetCantidad": 1,
+                    "ventDetPrecioUni": "20.00",
+                    "ventDetDescuento": 0,
+                }
+            ]
+        }, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        venta_id = response.data['venta']['ventCod']
+
+        pay_response = auth_client.post(f"/api/sales/ventas/{venta_id}/registrar_pago/", {
+            "monto": 999.00,  # excede el saldo pendiente (20.00)
+            "forma_pago": "EFECTIVO"
+        }, format="json")
+
+        assert pay_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "excede el saldo" in pay_response.data.get("error", "")
