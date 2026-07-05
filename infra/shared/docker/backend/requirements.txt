@@ -1,4 +1,4 @@
-Django>=5.2,<5.3
+Django==5.2.10
 django-cors-headers>=4.9,<5
 django-filter>=25.2,<26
 djangorestframework>=3.16,<4
