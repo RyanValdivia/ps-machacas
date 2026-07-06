@@ -68,6 +68,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     """Serializer para detalle completo del producto"""
     catproCod_detail = ProductCategorySerializer(source='catproCod', read_only=True)
     provCod_detail = SupplierSerializer(source='provCod', read_only=True)
+    categoria = serializers.CharField(source='catproCod.catproNom', read_only=True)
+    proveedor = serializers.CharField(source='provCod.provRazSocial', read_only=True)
     material_display = serializers.CharField(source='get_prodMate_display', read_only=True)
     genero_display = serializers.CharField(source='get_prodGenero_display', read_only=True)
     estado_display = serializers.CharField(source='get_prodEstado_display', read_only=True)
@@ -85,8 +87,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'prodDescr',
             'catproCod',
             'catproCod_detail',
+            'categoria',
             'provCod',
             'provCod_detail',
+            'proveedor',
             'prodMarca',
             'prodMate',
             'material_display',

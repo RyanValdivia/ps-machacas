@@ -122,8 +122,8 @@ class TestSupplierModel:
         """Crear proveedor con datos válidos"""
         supplier = Supplier.objects.create(**supplier_data)
         assert supplier.provRuc == '20123456789'
-        assert supplier.provRazSocial == 'IMPORTADORA OPTICA S.A.C.'
-        assert supplier.provEstado == 'A'
+        assert supplier.provRazSocial == 'IMPORTADORA OPTICA SAC'
+        assert supplier.provEstado == 'Active'
 
     @pytest.mark.django_db
     def test_supplier_str(self, supplier_data):
@@ -236,18 +236,12 @@ class TestSupplierModel:
     @pytest.mark.django_db
     def test_supplier_all_departments(self, supplier_data):
         """Todos los departamentos son válidos"""
-        departamentos = [
-            'AMAZONAS', 'ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO',
-            'CAJAMARCA', 'CALLAO', 'CUSCO', 'HUANCAVELICA', 'HUANUCO',
-            'ICA', 'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LIMA',
-            'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'PASCO', 'PIURA',
-            'PUNO', 'SAN MARTIN', 'TACNA', 'TUMBES', 'UCAYALI'
-        ]
-        for dpto in departamentos:
-            supplier_data['provRuc'] = f'20{dpto[:2]:0<9}'  # RUC único
-            supplier_data['provDpto'] = dpto
+        departamentos = [choice[0] for choice in Supplier.DEPARTAMENTO_CHOICES]
+        for i, dpto in enumerate(departamentos):
+            supplier_data['provRuc'] = f'{20000000000 + i}'  # RUC único (11 dígitos)
+            supplier_data['provCiu'] = dpto
             supplier = Supplier.objects.create(**supplier_data)
-            assert supplier.provDpto == dpto
+            assert supplier.provCiu == dpto
 
 
 # ==================== SERIALIZER TESTS ====================
@@ -344,7 +338,7 @@ class TestSupplierSerializer:
         supplier = serializer.save()
         assert supplier.provDirec is None
         assert supplier.provEmail is None
-        assert supplier.provTelf is None
+        assert supplier.provTele is None
 
     @pytest.mark.django_db
     def test_serializer_create(self, supplier_data):
@@ -492,8 +486,10 @@ class TestSupplierViewSet:
         from products.models import Product
         from categories.models import ProductCategory
         supplier = Supplier.objects.create(**supplier_data)
-        # Crear categoría y producto asociado
-        categoria = ProductCategory.objects.create(catproNom='Monturas', catproCode='MO')
+        # Crear (o reusar) categoría y producto asociado
+        categoria, _ = ProductCategory.objects.get_or_create(
+            catproCode='MO', defaults={'catproNom': 'Monturas'}
+        )
         Product.objects.create(
             catproCod=categoria,
             provCod=supplier,

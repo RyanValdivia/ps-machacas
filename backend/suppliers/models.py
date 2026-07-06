@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, EmailValidator
+from django.core.validators import RegexValidator, EmailValidator, validate_email
 from django.core.exceptions import ValidationError
 
 class Supplier(models.Model):
@@ -94,6 +94,15 @@ class Supplier(models.Model):
                 'provTele': 'El número de teléfono debe tener exactamente 9 dígitos numéricos'
             })
         
+        # Validacion email (solo si se proporciona)
+        if self.provEmail:
+            try:
+                validate_email(self.provEmail)
+            except ValidationError:
+                raise ValidationError({
+                    'provEmail': 'El email no tiene un formato válido'
+                })
+
         # Validacion business name (siempre requerido)
         if len(self.provRazSocial.strip()) < 3:
             raise ValidationError({

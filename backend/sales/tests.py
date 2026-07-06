@@ -991,10 +991,10 @@ class TestVentaSerializers:
     def test_comprobante_serializer_fields(self):
         """Prueba campos del serializer de comprobante."""
         from sales.serializers import ComprobanteSerializer
-        assert "venta" in ComprobanteSerializer.fields
-        assert "comprNombreCliente" in ComprobanteSerializer.fields
+        assert "venta" in ComprobanteSerializer().fields
+        assert "comprNombreCliente" in ComprobanteSerializer().fields
 
     def test_venta_detail_serializer_fields(self):
         """Prueba campos del serializer de detalle de venta."""
         from sales.serializers import VentaDetailSerializer
-        assert "detalles" in VentaDetailSerializer.fields
+        assert "detalles" in VentaDetailSerializer().fields
