@@ -27,14 +27,20 @@ ON CONFLICT ("rolCod") DO NOTHING;
 
 -- Users (password: Admin123!)
 INSERT INTO "users_user" ("last_login","is_superuser","usuCod","usuNom","password","usuNombreCom","usuDNI","usuTel","usuEmail","usuEstado","is_staff","is_active","date_joined") VALUES
+(NULL,TRUE,1,'gerente1','pbkdf2_sha256$1000000$w8qGOvFQCBfDxZxikHnK3A$6ZlS4ZC6yuD+ynvYy2t101fUxLtc5VvM50dRVuPNHyY=','Gerente de Prueba','99999999','999999998','gerente1@registrame.com',TRUE,TRUE,TRUE,'2026-06-09 12:48:23.000000+00'),
 (NULL,FALSE,2,'cajero1','pbkdf2_sha256$1000000$NkTao8VuXHLvozmVINzRTN$E6w5ia4Kx1mfFQOwgx9mncwJrVoNIvI1wXfs8H8rFhc=','Cajero de Prueba','88888888','888888888','cajero1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:24.214390+00'),
-(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00')
+(NULL,FALSE,3,'vendedor1','pbkdf2_sha256$1000000$uEDzoHktJxFNukPpdFNVgI$BZqlurK8/M/cJLKyh8jGumiPcg0hQoomx4wbr7SNgfg=','Vendedor de Prueba','77777777','777777777','vendedor1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:25.002607+00'),
+(NULL,FALSE,4,'optometra1','pbkdf2_sha256$1000000$UB9WpmaF1TZbJLCRuOBqal$SWyA7RYoopIWhqPUeojs1tP0OPWg12SSBEd/FKCaf78=','Optometra de Prueba','66666666','666666666','optometra1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:26.000000+00'),
+(NULL,FALSE,5,'logistica1','pbkdf2_sha256$1000000$1Fj54nOfuOuzfieXveacN1$EW1lshnk3xQLX6b3OrkaGfozKrqE96Js6tIIbUE4rAY=','Logistica de Prueba','55555555','555555555','logistica1@registrame.com',TRUE,FALSE,TRUE,'2026-06-09 12:48:27.000000+00')
 ON CONFLICT ("usuCod") DO NOTHING;
 
 -- User-Role assignments
 INSERT INTO "users_user_roles" ("id","user_id","role_id") VALUES
+(1,1,1),
 (2,2,2),
-(3,3,3)
+(3,3,3),
+(4,4,4),
+(5,5,5)
 ON CONFLICT ("id") DO NOTHING;
 
 -- Products

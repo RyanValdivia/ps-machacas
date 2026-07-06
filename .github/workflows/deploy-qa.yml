@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - qa
+  pull_request:
+    branches:
+      - qa
   workflow_dispatch:
 
 env:
@@ -157,6 +160,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: [test, e2e]
+    if: github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write
@@ -206,6 +210,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Deploy over SSH
@@ -233,6 +238,7 @@ jobs:
   seed:
     runs-on: ubuntu-latest
     needs: deploy
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout

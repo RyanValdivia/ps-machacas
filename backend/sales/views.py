@@ -636,7 +636,7 @@ class VentaViewSet(viewsets.ModelViewSet):
                 'ventas_vendedor': ventas_vendedor_list,
                 'ventas_caja': ventas_caja_list,
                 'ventas_listas': ventas_listas_data,
-                'ventas_pendientes': ventas_pendientes_data
+                'ventas_pendientes_entrega': ventas_pendientes_data
             })
             
         except Exception as e:
@@ -766,23 +766,9 @@ class VentaDetalleViewSet(viewsets.ModelViewSet):
         POST /api/ventas-detalle/{id}/anular_detalle/
         """
         detalle = self.get_object()
-        
-        if detalle.ventDetAnulado:
-            return Response(
-                {'error': 'El detalle ya esta anulado'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+
         try:
-            with transaction.atomic():
-                detalle.devolver_stock()
-                detalle.ventDetAnulado = True
-                detalle.save()
-                
-                # Recalcular totales de la venta
-                detalle.ventCod.calcular_totales()
-                detalle.ventCod.save()
-            
+            detalle.anular_detalle()
             serializer = self.get_serializer(detalle)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
