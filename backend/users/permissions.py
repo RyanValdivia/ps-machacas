@@ -6,7 +6,7 @@ from .models import User  # rolCod es posible Más de un acceso (muchos roles)
 class Nivel1Permission(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and any(
-            role.nivel == 1 for rol in request.user.roles.all()
+            rol.rolNivel == 1 for rol in request.user.roles.all()
         )
 
 
@@ -14,7 +14,7 @@ class Nivel1Permission(BasePermission):
 class Nivel2Permission(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and any(
-            role.nivel == 2 for rol in request.user.roles.all()
+            rol.rolNivel == 2 for rol in request.user.roles.all()
         )
 
 
@@ -22,7 +22,7 @@ class Nivel2Permission(BasePermission):
 class Nivel3Permission(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and any(
-            role.nivel == 3 for rol in request.user.roles.all()
+            rol.rolNivel == 3 for rol in request.user.roles.all()
         )
 
 
@@ -30,5 +30,5 @@ class Nivel3Permission(BasePermission):
 class Nivel4Permission(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and any(
-            role.nivel == 4 for rol in request.user.roles.all()
+            rol.rolNivel == 4 for rol in request.user.roles.all()
         )

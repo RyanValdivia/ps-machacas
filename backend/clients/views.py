@@ -19,6 +19,12 @@ class ClientPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 50
 
+    def paginate_queryset(self, queryset, request, view=None):
+        # Si todo cabe en una sola página, no paginamos (se devuelve como lista simple)
+        if queryset.count() <= self.get_page_size(request):
+            return None
+        return super().paginate_queryset(queryset, request, view)
+
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all().order_by('cliNomCompleto')
     serializer_class = ClientSerializer
