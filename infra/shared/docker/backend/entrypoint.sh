@@ -36,6 +36,33 @@ done
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
+if [ "${SEED_DEMO_DATA:-false}" = "true" ] && [ -f /app/database_seed.sql ]; then
+  echo "Aplicando database_seed.sql (roles, usuarios de prueba, catalogo demo)..."
+  python - <<'PY'
+import os
+
+import psycopg2
+
+host = os.environ.get("DB_HOST", "db")
+port = int(os.environ.get("DB_PORT", "5432"))
+name = os.environ.get("DB_NAME", "registrame_db")
+user = os.environ.get("DB_USER", "postgres")
+password = os.environ.get("DB_PASSWORD", "")
+
+with open("/app/database_seed.sql", encoding="utf-8") as f:
+    sql = f.read()
+
+conn = psycopg2.connect(dbname=name, user=user, password=password, host=host, port=port)
+try:
+    with conn.cursor() as cur:
+        cur.execute(sql)
+    conn.commit()
+    print("[OK] database_seed.sql aplicado")
+finally:
+    conn.close()
+PY
+fi
+
 python - <<'PY'
 import os
 
