@@ -6,8 +6,8 @@ test.describe('E2E-AUTH: Autenticación - RegistraMe', () => {
   test('Debería loguearse exitosamente y redirigir al Dashboard @acceptance', async ({ page }) => {
     // Arrange: Navegar al login e ingresar credenciales válidas
     await page.goto('/');
-    await page.fill('#username', 'admin');
-    await page.fill('#password', 'admin123');
+    await page.fill('#username', process.env.TEST_USER ?? 'admin');
+    await page.fill('#password', process.env.TEST_PASSWORD ?? 'admin123');
 
     // Act: Enviar el formulario.
     await page.click('button[type="submit"]');
