@@ -41,9 +41,23 @@ const Prescriptions = () => {
 
       const data = await getClients(filters.search, pageNumber, filtersForBackend);
 
-      setClients(data.results);
-      setNext(data.next);
-      setPrevious(data.previous);
+      if (data && Array.isArray(data.results)) {
+        setClients(data.results);
+        setNext(data.next);
+        setPrevious(data.previous);
+      } else if (data && (data as any).data && Array.isArray((data as any).data)) {
+        setClients((data as any).data);
+        setNext(null);
+        setPrevious(null);
+      } else if (Array.isArray(data)) {
+        setClients(data);
+        setNext(null);
+        setPrevious(null);
+      } else {
+        setClients([]);
+        setNext(null);
+        setPrevious(null);
+      }
     } catch (error) {
       console.error("Error cargando clientes", error);
       showErrorToast("Error al cargar clientes");

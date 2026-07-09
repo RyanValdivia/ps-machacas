@@ -46,7 +46,15 @@ const ClientDetailPanel = ({ client, open, onClose, onEdit, onRefresh }: Props) 
     setLoadingPrescriptions(true);
     try {
       const data = await getRecipes(1, { cliCod: client.cliCod });
-      setPrescriptions(data.results);
+      if (data && Array.isArray(data.results)) {
+        setPrescriptions(data.results);
+      } else if (data && (data as any).data && Array.isArray((data as any).data)) {
+        setPrescriptions((data as any).data);
+      } else if (Array.isArray(data)) {
+        setPrescriptions(data);
+      } else {
+        setPrescriptions([]);
+      }
     } catch (error) {
       console.error("Error cargando recetas:", error);
       setPrescriptions([]);
