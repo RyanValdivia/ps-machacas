@@ -2,16 +2,31 @@
 
 En el marco del plan de pruebas, se han implementado exitosamente las pruebas E2E correspondientes al módulo de Punto de Venta (POS) utilizando la herramienta Playwright. Las pruebas siguen el enfoque destructivo de Myers y aplican Análisis de Valores Límite.
 
-## 1. Implementación de Escenarios
-Se implementaron 7 escenarios cubriendo los flujos más críticos del Módulo POS:
 
-- **E2E-POS-01: Apertura de Caja Exitosa**: Se aplicó Análisis de Valores Límite validando el ingreso de monto de apertura (Ej: S/0 como frontera inválida y S/100 como frontera válida). (`pos-sale.spec.ts`)
-- **E2E-POS-02: Venta Simple de Montura (Stock Límite)**: Selección de producto con método de pago EFECTIVO, verificando reducción de stock (-1 unidad). (`pos-sale.spec.ts`)
-- **E2E-POS-03: Venta con Luna Personalizada**: Validación de carga asíncrona y modificación de precio dinámico desde el modal de lunas. (`pos-sale.spec.ts`)
-- **E2E-POS-04: Venta con Pago Parcial (Adelanto)**: Análisis de Valores Límite en pagos, verificando que el sistema acepte adelantos menores al total (Ej: S/100 de S/200) y cambie a estado PARCIAL. (`pos-payments.spec.ts`)
-- **E2E-POS-05: Registro de Pago de Saldo Pendiente**: Gestión de deudas y transición de estado (de PARCIAL a PAGADO) tras liquidar el saldo. (`pos-payments.spec.ts`)
-- **E2E-POS-06: Cierre de Caja con Balance**: Análisis de Valores Límite en la declaración final, exigiendo justificación si el monto en caja difiere del esperado. (`pos-cash.spec.ts`)
-- **E2E-POS-07: Anulación de Venta**: Validación del proceso destructivo de anulación, pidiendo motivo obligatorio y devolviendo el stock automáticamente. (`pos-cancel.spec.ts`)
+## 1. Implementación de Escenarios
+
+Como parte del plan de pruebas E2E, se implementaron escenarios para validar las funcionalidades críticas de los módulos de Punto de Venta (POS) e Inventario (INV) utilizando Playwright. Las pruebas siguen el enfoque destructivo de Myers y aplican el criterio de Análisis de Valores Límite (Boundary Value Analysis - BVA), verificando tanto el comportamiento esperado como las condiciones de frontera de las funcionalidades más importantes del sistema.
+
+### 1.1. Módulo Punto de Venta (POS)
+
+Se implementaron siete escenarios cubriendo los flujos más críticos del módulo POS:
+
+- **E2E-POS-01: Apertura de Caja Exitosa**: Se aplicó Análisis de Valores Límite validando el ingreso de monto de apertura (Ej.: S/0 como frontera inválida y S/100 como frontera válida). (`pos-sale.spec.ts`)
+- **E2E-POS-02: Venta Simple de Montura (Stock Límite)**: Selección de producto con método de pago EFECTIVO, verificando la reducción del stock (-1 unidad). (`pos-sale.spec.ts`)
+- **E2E-POS-03: Venta con Luna Personalizada**: Validación de carga asíncrona y modificación dinámica del precio desde el modal de lunas. (`pos-sale.spec.ts`)
+- **E2E-POS-04: Venta con Pago Parcial (Adelanto)**: Aplicación de BVA en pagos, verificando que el sistema acepte adelantos menores al total (Ej.: S/100 de S/200) y cambie el estado a PARCIAL. (`pos-payments.spec.ts`)
+- **E2E-POS-05: Registro de Pago de Saldo Pendiente**: Gestión de deudas y transición de estado de PARCIAL a PAGADO tras cancelar el saldo. (`pos-payments.spec.ts`)
+- **E2E-POS-06: Cierre de Caja con Balance**: Aplicación de BVA en el cierre de caja, exigiendo justificación cuando el monto declarado difiere del esperado. (`pos-cash.spec.ts`)
+- **E2E-POS-07: Anulación de Venta**: Validación del proceso de anulación, exigiendo un motivo obligatorio y verificando la devolución automática del stock. (`pos-cancel.spec.ts`)
+
+### 1.2. Módulo de Inventario (INV)
+
+Se implementaron cuatro escenarios para validar las funcionalidades principales del módulo de Inventario:
+
+- **E2E-INV-01: Registro de Montura Nueva y Stock Límite**: Validación del registro de productos considerando un stock regular y la frontera inferior (stock = 0).
+- **E2E-INV-02: Búsqueda y Filtrado de Productos**: Verificación del funcionamiento del buscador y de los filtros avanzados del catálogo de inventario.
+- **E2E-INV-03: Validación de Stock Crítico en POS**: Aplicación de BVA sobre productos con stock unitario, comprobando la venta del último artículo y el bloqueo de cantidades superiores al stock disponible.
+- **E2E-INV-04: Gestión de Proveedores**: Validación de la creación de proveedores y del criterio de frontera para el RUC (11 dígitos válidos frente a entradas inválidas).
 
 ## 2. Refactorización para Mantenibilidad
 Se diseñó un helper de autenticación en `frontend/tests/helpers/auth.ts` (`loginAs()`) para promover la reutilización de código de inicio de sesión en futuros paquetes de pruebas (P5, P7), reduciendo el código repetitivo en la Suite.
