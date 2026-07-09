@@ -1,0 +1,317 @@
+mplementación de pruebas no funcionales con Locust
+Objetivo
+
+Implementar todas las pruebas no funcionales definidas para el Hito 3 utilizando Locust (y scripts Python cuando sea necesario). Las pruebas deben reutilizar los endpoints existentes del sistema (no crear endpoints nuevos) y generar evidencias de ejecución.
+
+Toda la implementación deberá ubicarse dentro de:
+
+backend/tests/stress/
+
+La estructura final esperada es:
+
+backend/
+└── tests/
+    └── stress/
+        ├── __init__.py
+        ├── locustfile_pos.py          # NF-STRESS-01, 03 y 05
+        ├── locustfile_inventory.py    # NF-STRESS-02
+        ├── locustfile_volume.py       # NF-VOL-01
+        ├── locustfile_soak.py         # NF-SOAK-01
+        ├── seed_masivo.py             # generación de datos
+        ├── report_pos.html
+        ├── report_inventory.html
+        ├── report_volume.html
+        └── report_soak.html
+
+Antes de implementar cualquier prueba, el agente debe inspeccionar el proyecto para identificar:
+
+endpoints disponibles
+autenticación requerida
+modelos involucrados
+estructura de productos
+estructura de ventas
+flujo de login
+cómo crear correctamente una venta
+
+No debe asumir nombres de campos.
+
+Debe reutilizar el flujo funcional existente.
+
+Prueba 1 — NF-STRESS-01 (Ventas Concurrentes)
+Archivo
+backend/tests/stress/locustfile_pos.py
+Objetivo
+
+Evaluar el rendimiento del endpoint de creación de ventas.
+
+Escenario
+
+Simular
+
+50 usuarios concurrentes
+duración: 2 minutos
+
+Cada usuario ejecuta
+
+POST /api/sales/ventas/
+
+utilizando datos válidos.
+
+Métricas
+
+Registrar
+
+Throughput
+Latencia P95
+Error Rate
+
+Criterios
+
+P95 ≤ 3 s
+Error Rate < 5 %
+
+Generar
+
+report_pos.html
+Prueba 2 — NF-STRESS-02 (Búsquedas Masivas)
+Archivos
+backend/tests/stress/seed_masivo.py
+
+backend/tests/stress/locustfile_inventory.py
+Preparación
+
+Implementar un script que genere
+
+mínimo 1000 productos
+
+Los productos deben contener variedad de
+
+marcas
+materiales
+graduaciones
+nombres
+
+para que las búsquedas sean representativas.
+
+El script debe utilizar Django ORM o SQL.
+
+Debe poder ejecutarse mediante
+
+python seed_masivo.py
+Escenario
+
+Simular
+
+100 usuarios
+3 minutos
+
+Cada usuario consulta
+
+GET /api/products/
+
+variando aleatoriamente
+
+search
+material
+filtros
+Métricas
+
+Registrar
+
+Latencia P95
+Timeouts
+CPU
+RAM
+
+Criterios
+
+P95 ≤ 2 s
+0 timeouts
+
+Generar
+
+report_inventory.html
+Prueba 3 — NF-STRESS-03 (Race Condition)
+Archivo
+backend/tests/stress/locustfile_pos.py
+Preparación
+
+Crear un producto con
+
+stock = 1
+Escenario
+
+Simular
+
+10 usuarios concurrentes
+
+Todos intentan comprar exactamente el mismo producto.
+
+Validaciones
+
+Debe comprobarse que
+
+solamente 1 venta fue exitosa
+9 ventas fueron rechazadas
+respuesta HTTP 400 para las rechazadas
+stock final = 0
+
+Al finalizar ejecutar una consulta SQL para validar el stock.
+
+Registrar el resultado.
+
+Prueba 4 — NF-STRESS-05 (Dashboard)
+Archivo
+backend/tests/stress/locustfile_pos.py
+Escenario
+
+Simular
+
+20 usuarios
+duración: 5 minutos
+
+Cada usuario consulta
+
+GET /api/sales/ventas/estadisticas_dashboard/
+Métricas
+
+Registrar
+
+Latencia P95
+estabilidad
+uso de memoria
+
+Criterios
+
+P95 ≤ 5 s
+sin memory leaks
+
+Generar
+
+report_pos.html
+Prueba 5 — NF-VOL-01 (Volume Test)
+Archivos
+backend/tests/stress/seed_masivo.py
+
+backend/tests/stress/locustfile_volume.py
+Preparación
+
+Extender
+
+seed_masivo.py
+
+para soportar
+
+100000 productos
+
+No crear un script nuevo.
+
+Debe existir una opción o parámetro para generar
+
+1000 productos
+100000 productos
+Escenario
+
+Realizar búsquedas
+
+GET /api/products/?search=PEGASUS
+
+Comparar
+
+catálogo normal
+catálogo de 100000 registros
+Métricas
+
+Registrar
+
+tiempo promedio
+P95
+
+Criterios
+
+respuesta < 3 segundos
+sin degradación significativa
+
+Puede implementarse con
+
+Locust
+DRF APIClient
+Script Python
+
+Generar
+
+report_volume.html
+Prueba 6 — NF-SOAK-01 (Soak Test)
+Archivo
+backend/tests/stress/locustfile_soak.py
+Escenario
+
+Simular
+
+5 usuarios
+duración: 30 minutos
+
+Cada usuario ejecuta continuamente
+
+login
+búsqueda
+venta
+
+durante toda la prueba.
+
+Métricas
+
+Monitorear
+
+Latencia P95
+uso de memoria
+estabilidad
+crecimiento de memoria
+
+Utilizar
+
+docker stats
+
+para monitorear el consumo de recursos.
+
+Criterio
+
+No debe existir crecimiento sostenido de memoria.
+
+Generar
+
+report_soak.html
+Reportes requeridos
+
+Cada prueba debe generar un reporte HTML mediante Locust.
+
+Archivos esperados
+
+report_pos.html
+report_inventory.html
+report_volume.html
+report_soak.html
+Evidencias requeridas
+
+Cada prueba debe documentar:
+
+Throughput (cuando aplique).
+Latencia P95.
+Error Rate (cuando aplique).
+Número de Timeouts (cuando aplique).
+Uso de CPU.
+Uso de memoria.
+Capturas de docker stats para las pruebas correspondientes.
+Resultado de la consulta SQL que verifica el stock final en la prueba NF-STRESS-03.
+Requisitos importantes para el agente
+
+Antes de escribir cualquier prueba, el agente debe analizar el proyecto para identificar:
+
+estructura del backend Django;
+modelos de Productos y Ventas;
+endpoints reales disponibles;
+autenticación (JWT, Session, Token, etc.);
+formato esperado del payload de cada endpoint;
+datos mínimos necesarios para crear una venta válida.
+
+No debe inventar endpoints, nombres de campos, modelos ni payloads. Todas las pruebas deben adaptarse a la implementación existente del proyecto.
