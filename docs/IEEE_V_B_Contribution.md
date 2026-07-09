@@ -163,3 +163,135 @@ Verifica el correcto funcionamiento del botón de anulación de pedidos/ventas, 
 *(Screenshot adjunto: `docs/assets/E2E-POS-07.png`)*
 
 **Resultado:** ✅ SATISFACTORIO
+
+
+
+### E2E-INV-01: Registro de Montura Nueva y Stock Límite (BVA)
+
+Este escenario evalúa la inserción de nuevos productos en el catálogo de inventario, analizando tanto un registro regular como la frontera del stock mínimo (límite inferior). Se compone de 2 casos de prueba:
+
+#### Caso 1: Registro de Montura Nueva con Stock Regular
+* **Descripción:** Comprueba que el usuario de Logística pueda registrar correctamente un producto de tipo montura con un stock inicial regular (ej: 5 unidades) y que la descripción concatenada se muestre de forma adecuada en la tabla.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Iniciar sesión como Logística (`logistica1`) e ingresar a la vista `/inventory`. | Se visualiza la tabla principal del Inventario. |
+  | 2 | Presionar el botón "Nuevo Producto" para desplegar el modal. | El formulario se muestra en pantalla. |
+  | 3 | Seleccionar Categoría "Monturas", ingresar marca única (Ej: `RAYBAN-[Rand]`), Material "Acetato" y Stock Actual = 5. | Los campos admiten las entradas ingresadas. |
+  | 4 | Presionar "Crear Producto". | El modal se cierra y el producto aparece listado en la tabla con la descripción correspondiente. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-01-01.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-01-montura-registrada.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+#### Caso 2: Registro de Montura con Stock Límite (Stock = 0)
+* **Descripción:** Comprueba la frontera de stock mínimo (cero), permitiendo que el sistema admita la inserción de una montura con stock = 0 en el catálogo.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Iniciar sesión como Logística (`logistica1`) e ingresar a la vista `/inventory`. | Se visualiza la tabla principal del Inventario. |
+  | 2 | Presionar "Nuevo Producto". | El modal de inserción se abre correctamente. |
+  | 3 | Seleccionar "Monturas", ingresar marca única (Ej: `BVA-TEST-[Rand]`), Material "Metal" y Stock Actual = 0. | El sistema admite el valor 0 de stock. |
+  | 4 | Presionar "Crear Producto". | El producto se registra de inmediato y aparece en la tabla general. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-01-02.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-01-bva-stock-cero.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+---
+
+### E2E-INV-02: Búsqueda y Filtrado de Productos
+
+**Descripción:**  
+Verifica la funcionalidad del buscador del catálogo de inventario y el filtrado avanzado por tipo de material.
+
+**Pasos de Ejecución:**
+| Paso | Acción / Entrada | Resultado Esperado |
+|------|------------------|--------------------|
+| 1 | Autenticarse e ir a la sección `/inventory`. | Se visualiza la tabla principal del Inventario. |
+| 2 | Escribir la palabra `"PEGASUS"` en el filtro de búsqueda. | La tabla se reduce mostrando únicamente los productos que coinciden. |
+| 3 | Abrir "Filtros Avanzados" y seleccionar en el selector de material el valor `"Metal"`. | La tabla se actualiza mostrando las monturas metálicas. Las monturas de Acetato (como RAYBAN) quedan ocultas. |
+
+**Evidencia:**  
+<video src="./assets/E2E-INV-02.webm" width="600" controls></video>  
+*(Screenshot adjunto: `docs/assets/inventory-search-filter.png`)*
+
+**Resultado:** ✅ SATISFACTORIO
+
+---
+
+### E2E-INV-03: Validación de Stock Crítico en POS (BVA Myers)
+
+Este escenario evalúa la robustez del carrito de compras y la facturación frente a un producto con stock crítico unitario (Stock = 1). Se compone de 3 casos de prueba:
+
+#### Caso 1: Permitir agregar exactamente 1 unidad al carrito y procesar la venta
+* **Descripción:** Valida el flujo ideal para un artículo con stock igual a 1, permitiendo su agregación y la finalización exitosa de la venta.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Iniciar sesión como administrador e ir a `/sale-point` (abrir caja con S/ 100 si es necesario). | Redirección exitosa al panel de ventas. |
+  | 2 | Buscar el producto `"M1"` (código de PEGASUS con Stock = 1) y agregarlo al carrito. | El artículo ingresa con cantidad = 1. |
+  | 3 | Seleccionar un vendedor y hacer clic en "Procesar Venta". | Se despliega el modal de confirmación de ticket. |
+  | 4 | Presionar "Confirmar e Imprimir". | SweetAlert2 confirma la venta exitosa y el stock en BD decrementa a 0. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-03-01.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-03-caso1-venta-exitosa.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+#### Caso 2: Bloquear intento de agregar 2 unidades (Stock + 1)
+* **Descripción:** Comprueba que el sistema bloquee intentos de sobrepasar el stock del producto (1 unidad), impidiendo incrementar la cantidad en el carrito y lanzando una alerta Toast.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Navegar a `/sale-point` con caja abierta y agregar el producto `"M1"` (Stock = 1) al carrito. | El artículo se agrega con cantidad = 1. |
+  | 2 | Intentar agregar una segunda unidad buscando de nuevo el mismo producto y cliqueando en él. | SweetAlert2 lanza advertencia visual "Stock máximo alcanzado (1 unidades)". |
+  | 3 | Comprobar el carrito. | La cantidad del producto se mantiene fija en 1. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-03-02.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-03-caso2-stock-insuficiente.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+#### Caso 3: Impedir agregar 0 unidades (Validar bloqueo de decremento)
+* **Descripción:** Verifica que no se pueda disminuir la cantidad a cero o menos desde la interfaz del carrito lateral (el botón decrementador debe estar inhabilitado).
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Añadir el producto `"M1"` (Stock = 1) al carrito. | El artículo ingresa con cantidad = 1. |
+  | 2 | Inspeccionar el botón decrementador (Minus) en la interfaz del producto en el carrito. | El botón se muestra inhabilitado/desactivado (`disabled`). |
+  | 3 | Intentar cliquear el botón. | No ocurre ninguna acción, impidiendo reducir la cantidad a 0. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-03-03.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-03-caso3-decremento-bloqueado.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+---
+
+### E2E-INV-04: Gestión de Proveedores (BVA)
+
+Este escenario valida la configuración de proveedores del sistema, evaluando la creación correcta y la validación de frontera en la longitud del RUC. Se compone de 2 casos de prueba:
+
+#### Caso 1: Creación de Nuevo Proveedor con RUC Válido
+* **Descripción:** Comprueba que un Gerente pueda registrar un proveedor de forma correcta ingresando un RUC válido de 11 dígitos.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Iniciar sesión como Gerente (`gerente1`) e ingresar a `/settings/supliers`. | Panel de "Gestión Central de Proveedores" cargado correctamente. |
+  | 2 | Presionar "Agregar Proveedor". | El formulario modal es visible en pantalla. |
+  | 3 | Llenar formulario con RUC dinámico de 11 dígitos y hacer clic en "Agregar". | SweetAlert2 notifica *"¡Proveedor Creado!"* y el proveedor aparece en la tabla. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-04-01.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-04-proveedor-creado.png`)*
+* **Resultado:** ✅ SATISFACTORIO
+
+#### Caso 2: Error de Validación de RUC con Formato Inválido
+* **Descripción:** Comprueba la frontera inválida del RUC ingresando solo 3 dígitos (Ej: `123`) y verificando que el formulario detenga el guardado mostrando un error en pantalla.
+* **Pasos de Ejecución:**
+  | Paso | Acción / Entrada | Resultado Esperado |
+  |------|------------------|--------------------|
+  | 1 | Abrir modal "Agregar Proveedor" en `/settings/supliers`. | El formulario modal es visible. |
+  | 2 | Rellenar Razón Social e ingresar RUC de 3 dígitos (`123`). | El campo acepta la entrada temporalmente. |
+  | 3 | Presionar "Agregar". | El sistema bloquea el submit e indica en rojo *"El RUC debe tener 11 dígitos"*. |
+* **Evidencia:**  
+  <video src="./assets/E2E-INV-04-02.webm" width="600" controls></video>  
+  *(Screenshot adjunto: `docs/assets/inv-04-bva-ruc-invalido.png`)*
+* **Resultado:** ✅ SATISFACTORIO
