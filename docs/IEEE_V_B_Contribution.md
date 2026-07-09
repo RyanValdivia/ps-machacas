@@ -28,6 +28,13 @@ Se implementaron cuatro escenarios para validar las funcionalidades principales 
 - **E2E-INV-03: Validación de Stock Crítico en POS**: Aplicación de BVA sobre productos con stock unitario, comprobando la venta del último artículo y el bloqueo de cantidades superiores al stock disponible.
 - **E2E-INV-04: Gestión de Proveedores**: Validación de la creación de proveedores y del criterio de frontera para el RUC (11 dígitos válidos frente a entradas inválidas).
 
+### 1.3. Módulo Clínico (CLI)
+
+Se implementaron dos escenarios automatizados correspondientes a la Ruta Crítica 4 para expandir el Hito 3 del proyecto, aplicando las técnicas de Análisis de Valores Límite (BVA) y Partición de Equivalencia (PE):
+
+- **E2E-CLI-01: Registro de cliente con DNI duplicado**: Técnica AVL (Frontera de unicidad de DNI). Registra un cliente con DNI único y luego intenta registrar otro con el mismo DNI, asegurando que el backend retorne un error de integridad (500) y que la interfaz de usuario del frontend renderice visiblemente una alerta de error (SweetAlert toast). (`clients-crud.spec.ts`)
+- **E2E-CLI-02: Registro de receta óptica**: Técnica PE (asociación clínica robusta). Registra un nuevo cliente, asocia dinámicamente un nuevo optometrista al formulario y llena valores decimales positivos/negativos para Esfera (SPH) y Cilindro (CYL) en ambos ojos (OD/OI), verificando que la receta se guarde y aparezca asociada correctamente en el historial clínico del paciente. (`clients-crud.spec.ts`)
+
 ## 2. Refactorización para Mantenibilidad
 Se diseñó un helper de autenticación en `frontend/tests/helpers/auth.ts` (`loginAs()`) para promover la reutilización de código de inicio de sesión en futuros paquetes de pruebas (P5, P7), reduciendo el código repetitivo en la Suite.
 
@@ -310,3 +317,49 @@ Este escenario valida la configuración de proveedores del sistema, evaluando la
   <video src="./assets/E2E-INV-04-02.webm" width="600" controls></video>  
   *(Screenshot adjunto: `docs/assets/inv-04-bva-ruc-invalido.png`)*
 * **Resultado:** ✅ SATISFACTORIO
+
+---
+
+### E2E-CLI-01: Registro de cliente con DNI duplicado (BVA)
+
+**Descripción:**  
+Verifica el comportamiento de frontera de unicidad del documento (DNI). Tras registrar un cliente original, intenta registrar un segundo cliente con el mismo DNI y comprueba que la aplicación muestre la alerta visual de error de duplicado.
+
+**Pasos de Ejecución:**
+| Paso | Acción / Entrada | Resultado Esperado |
+|------|------------------|--------------------|
+| 1 | Iniciar sesión como `admin` e ingresar al Módulo de Clientes (`/prescriptions`). | Carga completa y estabilización de la tabla de clientes. |
+| 2 | Clic en "Nuevo Cliente", rellenar campos con un DNI único generado dinámicamente y guardar. | El cliente se guarda con éxito; el modal de agregar se cierra. |
+| 3 | Volver a hacer clic en "Nuevo Cliente", ingresar el mismo DNI y rellenar otros datos. | El sistema carga los campos correspondientes. |
+| 4 | Clic en "Guardar" para enviar el formulario. | La petición es denegada con un error 500 del backend. |
+| 5 | Verificar que el mensaje de error "DNI ya registrado" o "Error al guardar cliente" sea visible en el toast. | El SweetAlert de error/advertencia se muestra en pantalla. |
+
+**Evidencia:**  
+<video src="./assets/E2E-CLI-01.webm" width="600" controls></video>  
+*(Screenshot adjunto: `docs/assets/e2e-cli-01-dni-duplicado.png`)*
+
+**Resultado:** ✅ SATISFACTORIO
+
+---
+
+### E2E-CLI-02: Registro de receta óptica (PE)
+
+**Descripción:**  
+Verifica la creación e integración de recetas ópticas asociadas al cliente, ingresando valores esféricos (SPH) y cilíndricos (CYL) de signos positivos y negativos, registrando a la par de forma asíncrona un nuevo optometrista.
+
+**Pasos de Ejecución:**
+| Paso | Acción / Entrada | Resultado Esperado |
+|------|------------------|--------------------|
+| 1 | Iniciar sesión como `admin`, ingresar a `/prescriptions` y crear un cliente con nombre ordenado al inicio (Prefijo "A "). | El cliente se registra exitosamente. |
+| 2 | Seleccionar al cliente recién creado de la tabla y hacer clic en "Ver detalle del cliente" (👁️). | Abre el panel lateral derecho con la información clínica detallada. |
+| 3 | Clic en "Registrar primera receta" para abrir el formulario clínico. | Despliega el modal de "Nueva Receta". |
+| 4 | Clic en "Agregar optometrista" (➕) para crear a "Juan Perez" y seleccionarlo de forma automática. | El nuevo optometrista se crea y autoselecciona correctamente. |
+| 5 | Rellenar campos de receta con valores decimales (OD: SPH `1.50` / CYL `-0.75` ; OI: SPH `2.00` / CYL `-1.25`). | Los campos aceptan las entradas refractivas. |
+| 6 | Clic en "Guardar Receta". | La receta se crea en la base de datos, el modal se cierra e inyecta la información en la vista. |
+| 7 | Validar que los valores (`1.50`, `-0.75`, `2.00`, `-1.25`) se muestren en la tabla de historial clínico. | Aserciones confirman los valores exactos vinculados en la tabla del panel de detalles. |
+
+**Evidencia:**  
+<video src="./assets/E2E-CLI-02.webm" width="600" controls></video>  
+*(Screenshot adjunto: `docs/assets/e2e-cli-02-receta-optica.png`)*
+
+**Resultado:** ✅ SATISFACTORIO
