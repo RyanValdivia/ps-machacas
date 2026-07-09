@@ -755,7 +755,9 @@ def test_update_stock_invalid_quantity(logistica_client, categoria_montura, supp
         catproCod=categoria_montura,
         provCod=supplier,
         prodDescr='Test',
-        prodMarca='M',
+        prodMarca='MO',
+        prodMate='A',
+        prodTalla='54-18-140',
         prodStock=10,
         prodPrecioVenta=Decimal('100.00')
     )
@@ -774,7 +776,9 @@ def test_update_stock_invalid_type(logistica_client, categoria_montura, supplier
         catproCod=categoria_montura,
         provCod=supplier,
         prodDescr='Test',
-        prodMarca='M',
+        prodMarca='MO',
+        prodMate='A',
+        prodTalla='54-18-140',
         prodStock=10,
         prodPrecioVenta=Decimal('100.00')
     )
@@ -793,7 +797,9 @@ def test_update_stock_insufficient(logistica_client, categoria_montura, supplier
         catproCod=categoria_montura,
         provCod=supplier,
         prodDescr='Test',
-        prodMarca='M',
+        prodMarca='MO',
+        prodMate='A',
+        prodTalla='54-18-140',
         prodStock=3,
         prodPrecioVenta=Decimal('100.00')
     )
@@ -824,5 +830,5 @@ def test_buscar_config_not_found(logistica_client):
 @pytest.mark.django_db
 def test_calcular_precio_missing_material(logistica_client):
     """Prueba cálculo de precio sin material."""
-    response = logistica_client.post('/api/lunas/calcular_precio/', {})
+    response = logistica_client.post('/api/lunas/configuracion/calcular_precio/', {})
     assert response.status_code == 400

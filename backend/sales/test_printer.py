@@ -46,8 +46,8 @@ class TestImpresoraTermica:
         datos = {
             "folio": "001-001", "fecha": "01/01/25 12:00",
             "vendedor": "Juan", "cliente": "Pedro Lopez",
-            "subtotal": "200.00", "descuento": "20.00", "total": "180.00",
-            "adelanto": "0", "metodo_pago": "",
+            "subtotal": 200.00, "descuento": 20.00, "total": 180.00,
+            "adelanto": 0, "metodo_pago": "",
             "productos": [{"cantidad": 2, "nombre": "Producto A", "subtotal": 100.00, "descuento": 0}],
         }
         ticket = printer._generar_ticket(datos)
@@ -60,7 +60,7 @@ class TestImpresoraTermica:
     # TEST: _generar_ticket con descuento
     def test_generar_ticket_descuento(self, printer):
         datos = {
-            "folio": "001", "total": "90.00", "subtotal": "100.00", "descuento": "10.00",
+            "folio": "001", "total": 90.00, "subtotal": 100.00, "descuento": 10.00,
             "productos": [{"cantidad": 1, "nombre": "Test", "subtotal": 100.00, "descuento": 10}],
         }
         ticket = printer._generar_ticket(datos)
@@ -69,8 +69,8 @@ class TestImpresoraTermica:
     # TEST: _generar_ticket con adelanto parcial
     def test_generar_ticket_adelanto_parcial(self, printer):
         datos = {
-            "folio": "001", "total": "200.00", "subtotal": "200.00", "descuento": "0",
-            "adelanto": "50.00", "metodo_pago": "EFECTIVO",
+            "folio": "001", "total": 200.00, "subtotal": 200.00, "descuento": 0,
+            "adelanto": 50.00, "metodo_pago": "EFECTIVO",
             "productos": [],
         }
         ticket = printer._generar_ticket(datos)
@@ -79,8 +79,8 @@ class TestImpresoraTermica:
     # TEST: _generar_ticket con adelanto completo
     def test_generar_ticket_adelanto_completo(self, printer):
         datos = {
-            "folio": "001", "total": "200.00", "subtotal": "200.00", "descuento": "0",
-            "adelanto": "200.00", "metodo_pago": "TARJETA",
+            "folio": "001", "total": 200.00, "subtotal": 200.00, "descuento": 0,
+            "adelanto": 200.00, "metodo_pago": "TARJETA",
             "productos": [],
         }
         ticket = printer._generar_ticket(datos)
@@ -89,7 +89,7 @@ class TestImpresoraTermica:
     # TEST: _generar_ticket con observaciones
     def test_generar_ticket_observaciones(self, printer):
         datos = {
-            "folio": "001", "total": "100.00", "subtotal": "100.00", "descuento": "0",
+            "folio": "001", "total": 100.00, "subtotal": 100.00, "descuento": 0,
             "observaciones": "Gracias por su compra",
             "productos": [],
         }
@@ -100,7 +100,7 @@ class TestImpresoraTermica:
     def test_generar_ticket_con_optical_center(self, printer):
         from opticalCenter.models import OpticalCenter
         OpticalCenter.objects.create(optNom="Optica Test", optDir="Av Principal 123", optTel="999888777")
-        datos = {"folio": "001", "total": "50.00", "subtotal": "50.00", "descuento": "0", "productos": []}
+        datos = {"folio": "001", "total": 50.00, "subtotal": 50.00, "descuento": 0, "productos": []}
         ticket = printer._generar_ticket(datos)
         assert b"Optica Test" in ticket
         assert b"AV PRINCIPAL 123" in ticket
@@ -108,14 +108,14 @@ class TestImpresoraTermica:
 
     # TEST: _generar_ticket sin OpticalCenter usa fallback
     def test_generar_ticket_sin_optical_center(self, printer):
-        datos = {"folio": "001", "total": "50.00", "subtotal": "50.00", "descuento": "0", "productos": []}
+        datos = {"folio": "001", "total": 50.00, "subtotal": 50.00, "descuento": 0, "productos": []}
         ticket = printer._generar_ticket(datos)
         assert b"OPTICA VISION IDEAL" in ticket
 
     # TEST: _generar_ticket con producto multilinea (lunas)
     def test_generar_ticket_producto_multilinea(self, printer):
         datos = {
-            "folio": "001", "total": "300.00", "subtotal": "300.00", "descuento": "0",
+            "folio": "001", "total": 300.00, "subtotal": 300.00, "descuento": 0,
             "productos": [{"cantidad": 1, "nombre": "Luna Personalizada\nOD: -1.50\nOI: -2.00", "subtotal": 300.00, "descuento": 0}],
         }
         ticket = printer._generar_ticket(datos)
@@ -150,15 +150,15 @@ class TestImpresoraTermica:
         assert len(result) > 0
         os.unlink(tmp.name)
 
-    # TEST: _convertir_imagen_a_escpos con logo inexistente
+    # TEST: _convertir_imagen_a_escpos con logo inexistente lanza FileNotFoundError
     def test_convertir_imagen_a_escpos_sin_archivo(self, printer):
-        result = printer._convertir_imagen_a_escpos("/no/existe.png")
-        assert result is None
+        with pytest.raises(FileNotFoundError):
+            printer._convertir_imagen_a_escpos("/no/existe.png")
 
     # TEST: imprimir_ticket_venta exito
     def test_imprimir_ticket_venta_success(self, printer):
         with patch.object(printer, '_enviar_a_impresora', return_value={'success': True}):
-            result = printer.imprimir_ticket_venta({"folio": "001", "total": "100.00", "subtotal": "100.00", "descuento": "0", "productos": []})
+            result = printer.imprimir_ticket_venta({"folio": "001", "total": 100.00, "subtotal": 100.00, "descuento": 0, "productos": []})
             assert result['success'] is True
 
     # TEST: imprimir_ticket_venta captura excepcion
@@ -187,7 +187,7 @@ class TestImpresoraTermica:
     # TEST: _generar_ticket con producto con descuento
     def test_generar_ticket_producto_con_descuento(self, printer):
         datos = {
-            "folio": "001", "total": "80.00", "subtotal": "100.00", "descuento": "20.00",
+            "folio": "001", "total": 80.00, "subtotal": 100.00, "descuento": 20.00,
             "productos": [{"cantidad": 1, "nombre": "Prod Desc", "subtotal": 100.00, "descuento": 20}],
         }
         ticket = printer._generar_ticket(datos)
@@ -205,7 +205,18 @@ class TestImpresoraTermica:
         oc = OpticalCenter.objects.create(optNom="Optica Logo")
         oc.optLogo.name = tmp.name
         oc.save()
-        datos = {"folio": "001", "total": "100.00", "subtotal": "100.00", "descuento": "0", "productos": []}
+        datos = {"folio": "001", "total": 100.00, "subtotal": 100.00, "descuento": 0, "productos": []}
         ticket = printer._generar_ticket(datos)
         assert isinstance(ticket, bytes)
         os.unlink(tmp.name)
+
+    # TEST: _generar_ticket con total decimal y fecha real
+    def test_generar_ticket_total_decimal(self, printer):
+        from datetime import datetime
+        datos = {
+            "folio": "001", "total": 99.99, "subtotal": 99.99, "descuento": 0,
+            "fecha": datetime.now().strftime("%d/%m/%y %H:%M"),
+            "productos": [{"cantidad": 1, "nombre": "Articulo", "subtotal": 99.99, "descuento": 0}],
+        }
+        ticket = printer._generar_ticket(datos)
+        assert b"99.99" in ticket

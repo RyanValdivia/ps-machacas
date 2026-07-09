@@ -57,10 +57,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         if search_query:
             queryset = self.get_queryset()
             
-            # Búsqueda SOLO por código - Exacto o que EMPIECE con el término
+            # Búsqueda por código (prioritaria) o por otros campos declarados en search_fields
             search_filter = (
                 Q(prodCode__iexact=search_query) |
-                Q(prodCode__istartswith=search_query)
+                Q(prodCode__istartswith=search_query) |
+                Q(prodMarca__icontains=search_query) |
+                Q(prodDescr__icontains=search_query) |
+                Q(prodColor__icontains=search_query) |
+                Q(prodTalla__icontains=search_query)
             )
             
             queryset = queryset.filter(search_filter)
@@ -92,29 +96,14 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def monturas(self, request):
         monturas = self.get_queryset().filter(catproCod__catproCode='MO')
-        
-        # Aplicar filtros
         filterset = self.filter_queryset(monturas)
-        
-        page = self.paginate_queryset(filterset)
-        if page is not None:
-            serializer = ProductListSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
         serializer = ProductListSerializer(filterset, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['get'])
     def accesorios(self, request):
         accesorios = self.get_queryset().filter(catproCod__catproCode='AC')
-        
         filterset = self.filter_queryset(accesorios)
-        
-        page = self.paginate_queryset(filterset)
-        if page is not None:
-            serializer = ProductListSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
         serializer = ProductListSerializer(filterset, many=True)
         return Response(serializer.data)
     
@@ -167,16 +156,48 @@ class ProductViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def ajustar_stock(self, request, pk=None):
+        """Establece el stock a un valor absoluto"""
+        producto = self.get_object()
+        stock = request.data.get('stock')
+
+        if stock is None:
+            return Response(
+                {'error': 'Debes proporcionar el stock'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            stock = int(stock)
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'El stock debe ser un numero'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if stock < 0:
+            return Response(
+                {'error': 'El stock no puede ser negativo'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        producto.prodStock = stock
+        producto.save()
+        serializer = ProductDetailSerializer(producto)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def update_stock(self, request, pk=None):
+        """Ajusta el stock sumando/restando una cantidad (entrada/salida)"""
         producto = self.get_object()
         cantidad = request.data.get('cantidad')
         tipo = request.data.get('tipo', 'entrada')
-        
+
         if cantidad is None:
             return Response(
                 {'error': 'Debes proporcionar la cantidad'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
             cantidad = int(cantidad)
         except ValueError:
@@ -184,7 +205,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'error': 'La cantidad debe ser un numero'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if tipo == 'entrada':
             producto.prodStock += cantidad
         elif tipo == 'salida':
@@ -199,7 +220,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'error': 'Tipo debe ser "entrada" o "salida"'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         producto.save()
         serializer = ProductDetailSerializer(producto)
         return Response(serializer.data)
@@ -209,8 +230,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 # ViewSets para Lunas Personalizadas
 # ==========================================
 
-class LunaMaterialViewSet(viewsets.ReadOnlyModelViewSet):
-    """API para obtener materiales de lunas"""
+class LunaMaterialViewSet(viewsets.ModelViewSet):
+    """API para materiales de lunas"""
     queryset = LunaMaterial.objects.all()
     serializer_class = LunaMaterialSerializer
     pagination_class = None  # Sin paginación para catálogos pequeños
@@ -230,7 +251,7 @@ class LunaCaracteristicaViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-class LunaConfiguracionViewSet(viewsets.ReadOnlyModelViewSet):
+class LunaConfiguracionViewSet(viewsets.ModelViewSet):
     """API para configuraciones de lunas"""
     queryset = LunaConfiguracion.objects.select_related('lunMatCod', 'lunTipCod').all()
     serializer_class = LunaConfiguracionSerializer

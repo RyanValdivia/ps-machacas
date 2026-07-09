@@ -206,10 +206,10 @@ const Dashboard = () => {
       </div>
 
       {/* Ventas Pendientes de Entrega */}
-      {estadisticas?.ventas_listas && estadisticas?.ventas_pendientes && (
-        <VentasPendientesEntrega 
+      {estadisticas?.ventas_listas && estadisticas?.ventas_pendientes_entrega && (
+        <VentasPendientesEntrega
           ventasListas={estadisticas.ventas_listas}
-          ventasPendientes={estadisticas.ventas_pendientes}
+          ventasPendientes={estadisticas.ventas_pendientes_entrega}
         />
       )}
 

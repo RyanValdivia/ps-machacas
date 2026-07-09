@@ -9,7 +9,7 @@ User = get_user_model()
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado para servicios externos"""
-    user = User.objects.create_user(usuNom="proxyuser", usuEmail="proxy@test.com", password="password123")
+    user = User.objects.create_user(usuNom="proxyuser", usuContra="password123", usuEmail="proxy@test.com")
     api_client.force_authenticate(user=user)
     return api_client
 
@@ -133,3 +133,28 @@ def test_consultar_ruc_error_responses(mock_get, auth_client):
     # Generic Exception
     mock_get.side_effect = Exception("Crash")
     assert auth_client.get(base_url).status_code == 500
+
+
+@pytest.mark.django_db
+@pytest.mark.integration
+class TestProxyResilienceIntegration:
+    """
+    INT-13 (Resiliencia): frontera API de Machacas -> servicio externo RENIEC (proxy DNI).
+    Es el unico punto del sistema que depende de un servicio realmente externo (fuera del
+    proceso de Django), por lo que es la frontera correcta para inyectar una falla de
+    latencia/timeout segun la Tarea de Analisis de Errores del Lab 08.
+    """
+
+    @patch('requests.get')
+    def test_int_13_proxy_dni_resiliencia_timeout(self, mock_get, auth_client):
+        """
+        Simula que RENIEC no responde a tiempo (timeout de red) y verifica que el backend
+        no se quede colgado esperando: debe responder 504 de forma controlada.
+        """
+        mock_get.side_effect = requests.exceptions.Timeout
+
+        url = reverse('consultar_dni') + "?numero=12345678"
+        resp = auth_client.get(url)
+
+        assert resp.status_code == 504
+        assert "error" in resp.data

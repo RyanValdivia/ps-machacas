@@ -163,7 +163,7 @@ class Venta(models.Model):
         ]
 
     def __str__(self):
-        cliente_nombre = self.cliCod.cliNombre if self.cliCod else "Cliente Generico"
+        cliente_nombre = self.cliCod.cliNomCompleto if self.cliCod else "Cliente Generico"
         return f"Venta #{self.ventCod} - {cliente_nombre} - S/{self.ventTotal}"
 
     @property
@@ -337,7 +337,13 @@ class Venta(models.Model):
         
         # Recalcular totales SIN actualizar el estado del pedido
         # Esto respeta el estado manual que pudo haber puesto el usuario
-        self.calcular_totales(actualizar_estado_pedido=False)
+        if self.ventadetalle_set.filter(ventDetAnulado=False).exists():
+            self.calcular_totales(actualizar_estado_pedido=False)
+        else:
+            # Sin detalles, no recalcular subtotal/total desde cero: solo
+            # actualizar saldo y estado de pago en base al total ya asignado
+            self.ventSaldo = max(self.ventTotal - self.ventAdelanto, Decimal("0"))
+            self._actualizar_estado()
         self.save()
         
         # Generar comprobante si esta totalmente pagado
@@ -645,6 +651,17 @@ class VentaDetalle(models.Model):
             producto = Product.objects.select_for_update().get(pk=self.prodCod_id)
             producto.prodStock += self.ventDetCantidad
             producto.save(update_fields=["prodStock"])
+
+    @transaction.atomic
+    def anular_detalle(self):
+        """Anula este detalle de venta, devuelve stock y recalcula totales de la venta"""
+        if self.ventDetAnulado:
+            raise ValidationError("El detalle ya esta anulado")
+        self.devolver_stock()
+        self.ventDetAnulado = True
+        self.save()
+        self.ventCod.calcular_totales()
+        self.ventCod.save()
 
 ################################################################################### COMPROBANTE
 

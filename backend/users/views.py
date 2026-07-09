@@ -149,13 +149,6 @@ def update_user(request, usuCod):
     if serializer.is_valid():
         serializer.save()
 
-        # Asignar roles si vienen en la petición
-        data = request.data
-        roles_ids = data.get('roles', [])
-        if roles_ids:
-            user.roles.set(roles_ids)
-        user.save()
-
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

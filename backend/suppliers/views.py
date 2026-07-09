@@ -114,7 +114,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
             )
         except ProtectedError as e:
             # Contar cuántos productos tiene asociados
-            from inventory.models import Product
+            from products.models import Product
             product_count = Product.objects.filter(provCod=instance).count()
             
             return Response(
