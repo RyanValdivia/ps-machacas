@@ -256,6 +256,125 @@ jobs:
           path: locust_report*
           retention-days: 30
 
+  recoverability:
+    runs-on: ubuntu-latest
+    needs: test
+    continue-on-error: true
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SETTINGS_MODULE: registrame.settings_test
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: test_db
+      DB_USER: test
+      DB_PASSWORD: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -r backend/requirements-dev.txt
+          pip install -r infra/shared/docker/backend/requirements.txt
+
+      - name: Apply migrations and seed database
+        run: |
+          python backend/manage.py migrate
+          PGPASSWORD=test psql -h localhost -U test -d test_db -f database_seed.sql
+
+      - name: Start Django Backend server
+        run: |
+          python backend/manage.py runserver 8000 &
+          sleep 3
+
+      - name: Start Locust load (10 usuarios, background)
+        run: |
+          mkdir -p evidence/nf-rec-01
+          nohup locust -f backend/tests/stress/locustfile_pos.py \
+            --host=http://localhost:8000 \
+            --users 10 --spawn-rate 2 --run-time 90s \
+            --headless --csv=evidence/nf-rec-01/locust_report \
+            > evidence/nf-rec-01/locust_stdout.log 2>&1 &
+          echo $! > /tmp/locust.pid
+        env:
+          TEST_VENDEDOR_USER: vendedor1
+          TEST_VENDEDOR_PASS: Admin123!
+
+      - name: Simular caída abrupta de PostgreSQL
+        run: |
+          sleep 20  # deja que la carga se estabilice antes de cortar la BD
+          PG_CID=$(docker ps --filter "ancestor=postgres:16-alpine" --format '{{.ID}}' | head -n1)
+          echo "PG_CID=$PG_CID" >> "$GITHUB_ENV"
+          echo "Deteniendo contenedor PostgreSQL: $PG_CID"
+          docker stop "$PG_CID"
+
+      - name: Reiniciar PostgreSQL tras 30s de caída
+        run: |
+          sleep 30
+          echo "Reiniciando contenedor PostgreSQL: $PG_CID"
+          docker start "$PG_CID"
+          docker logs "$PG_CID" > evidence/nf-rec-01/postgres_docker.log 2>&1
+
+      - name: Esperar a que finalice la carga Locust
+        run: |
+          LOCUST_PID=$(cat /tmp/locust.pid)
+          while kill -0 "$LOCUST_PID" 2>/dev/null; do sleep 2; done
+
+      - name: Verificar que el sistema responde tras el reinicio (HTTP 200)
+        run: |
+          for i in $(seq 1 15); do
+            STATUS=$(curl -s -o evidence/nf-rec-01/login_after_restart.json -w '%{http_code}' \
+              -X POST http://localhost:8000/api/user/token/ \
+              -H "Content-Type: application/json" \
+              -d '{"usuNom": "vendedor1", "usuContra": "Admin123!"}')
+            echo "Intento $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then break; fi
+            sleep 2
+          done
+          test "$STATUS" = "200"
+
+      - name: Verificar integridad transaccional (stock y estados de venta)
+        run: |
+          PGPASSWORD=test psql -h localhost -U test -d test_db \
+            -f backend/tests/reliability/verify_nf_rec_01.sql \
+            | tee evidence/nf-rec-01/verify_nf_rec_01_output.txt
+
+          NEGATIVE_STOCK=$(PGPASSWORD=test psql -h localhost -U test -d test_db -t -A -c \
+            "SELECT count(*) FROM product WHERE \"prodStock\" < 0;")
+          echo "Productos con stock negativo: $NEGATIVE_STOCK"
+          test "$NEGATIVE_STOCK" = "0"
+
+      - name: Upload NF-REC-01 evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nf-rec-01-evidence
+          path: evidence/nf-rec-01/
+          retention-days: 30
+
   build:
     runs-on: ubuntu-latest
     needs: [test, e2e]
