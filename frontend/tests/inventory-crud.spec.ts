@@ -30,13 +30,17 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
   test.beforeAll(async () => {
     try {
       // Limpieza de datos de prueba previos para asegurar idempotencia
-      execSync(
-        'docker exec registrame-backend python manage.py shell -c ' +
-        '"from products.models import Product; from suppliers.models import Supplier; ' +
-        'Product.objects.filter(prodMarca=\'BVA-TEST\').delete(); ' +
-        'Supplier.objects.filter(provRazSocial=\'Óptica Los Andes SAC\').delete()"',
-        { stdio: 'ignore' }
-      );
+      const pythonScript = `
+from products.models import Product
+from suppliers.models import Supplier
+Product.objects.filter(prodMarca__startswith='BVA-TEST').delete()
+Product.objects.filter(prodMarca__startswith='RAYBAN').delete()
+Supplier.objects.filter(provRazSocial__startswith='Óptica Los Andes').delete()
+print('DB Cleaned')
+`;
+      execSync('docker exec -i registrame-backend python manage.py shell', {
+        input: pythonScript,
+      });
     } catch (e) {
       console.warn('Advertencia: No se pudo realizar la limpieza de base de datos en Docker.', e);
     }
@@ -64,8 +68,9 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await page.locator('label:has-text("Categoría") + select').selectOption({ label: 'Monturas' });
       await page.locator('label:has-text("Proveedor") + select').selectOption({ label: 'Proveedor Genérico' });
 
-      // Llenar campos de montura
-      await page.fill('input[placeholder="Ej: Ray-Ban"]', 'RAYBAN');
+      // Llenar campos de montura con marca única
+      const uniqueBrand = `RAYBAN-${Math.floor(1000 + Math.random() * 9000)}`;
+      await page.fill('input[placeholder="Ej: Ray-Ban"]', uniqueBrand);
       await page.locator('label:has-text("Material") + select').selectOption({ label: 'Acetato' });
       await page.fill('input[placeholder="Ej: 54-18-140"]', '52-18-140');
       await page.fill('input[placeholder="Ej: Negro"]', 'NEGRO');
@@ -83,7 +88,7 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await page.waitForTimeout(1000); 
 
       // Verificar que la descripción aparece en la tabla
-      const productRow = page.locator(`text=RAYBAN | 52-18-140 NEGRO`).first();
+      const productRow = page.locator(`text=${uniqueBrand} | 52-18-140 NEGRO`).first();
       await expect(productRow).toBeVisible({ timeout: 10000 });
 
       await page.screenshot({ path: 'screenshots/inv-01-montura-registrada.png', fullPage: true });
@@ -99,10 +104,11 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await page.click('button:has-text("Nuevo Producto")');
       await expect(page.getByRole('dialog', { name: /Nuevo Producto/i })).toBeVisible({ timeout: 5000 });
 
-      // Llenar formulario con stock = 0 (BVA)
+      // Llenar formulario con stock = 0 (BVA) y marca única
+      const uniqueBrand = `BVA-TEST-${Math.floor(1000 + Math.random() * 9000)}`;
       await page.locator('label:has-text("Categoría") + select').selectOption({ label: 'Monturas' });
       await page.locator('label:has-text("Proveedor") + select').selectOption({ label: 'Proveedor Genérico' });
-      await page.fill('input[placeholder="Ej: Ray-Ban"]', 'BVA-TEST');
+      await page.fill('input[placeholder="Ej: Ray-Ban"]', uniqueBrand);
       await page.locator('label:has-text("Material") + select').selectOption({ label: 'Metal' });
       await page.fill('input[placeholder="Ej: 54-18-140"]', '50-18-130');
       await page.fill('input[placeholder="Ej: Negro"]', 'GRIS');
@@ -117,7 +123,7 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await expect(page.getByRole('dialog', { name: /Nuevo Producto/i })).not.toBeVisible({ timeout: 10000 });
       await page.waitForTimeout(1000);
 
-      const productRow = page.locator(`text=BVA-TEST`).first();
+      const productRow = page.locator(`text=${uniqueBrand}`).first();
       await expect(productRow).toBeVisible({ timeout: 10000 });
 
       await page.screenshot({ path: 'screenshots/inv-01-bva-stock-cero.png', fullPage: true });
@@ -139,8 +145,13 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await page.click('button:has-text("Agregar Proveedor")');
       await expect(page.getByRole('dialog', { name: /Agregar Proveedor/i })).toBeVisible({ timeout: 5000 });
 
-      await page.fill('#provRazSocial', 'Óptica Los Andes SAC');
-      await page.fill('#provRuc', '20123456789');
+      // Generar nombre y RUC únicos para evitar colisiones concurrenciales entre workers
+      const uniqueSuffix = Math.floor(100000 + Math.random() * 900000);
+      const provName = `Óptica Los Andes ${uniqueSuffix}`;
+      const provRuc = `20${Math.floor(100000000 + Math.random() * 900000000)}`;
+
+      await page.fill('#provRazSocial', provName);
+      await page.fill('#provRuc', provRuc);
       await page.fill('#provDirec', 'Av. Ejército 456, Miraflores');
 
       await page.click('button[type="submit"]:has-text("Agregar")');
@@ -148,7 +159,7 @@ test.describe('E2E-INV: Catálogo e Inventario', () => {
       await expect(page.locator('.swal2-popup:has-text("¡Proveedor Creado!")')).toBeVisible({ timeout: 5000 });
       await expect(page.locator('.swal2-popup:has-text("¡Proveedor Creado!")')).not.toBeVisible({ timeout: 5000 });
 
-      const supplierRow = page.locator('text=Óptica Los Andes SAC').first();
+      const supplierRow = page.locator(`text=${provName}`).first();
       await expect(supplierRow).toBeVisible({ timeout: 10000 });
 
       await page.screenshot({ path: 'screenshots/inv-04-proveedor-creado.png', fullPage: true });
