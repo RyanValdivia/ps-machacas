@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY backend /app/backend
+COPY database_seed.sql /app/database_seed.sql
 COPY infra/shared/docker/backend/entrypoint.sh /app/infra/shared/docker/backend/entrypoint.sh
 RUN chmod +x /app/infra/shared/docker/backend/entrypoint.sh
 

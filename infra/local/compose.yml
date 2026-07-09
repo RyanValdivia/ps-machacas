@@ -40,6 +40,7 @@ services:
       DEFAULT_ADMIN_FULL_NAME: ${DEFAULT_ADMIN_FULL_NAME:-Administrador}
       DEFAULT_ADMIN_DNI: ${DEFAULT_ADMIN_DNI:-00000000}
       DEFAULT_ADMIN_PHONE: ${DEFAULT_ADMIN_PHONE:-900000000}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
     depends_on:
       db:
         condition: service_healthy

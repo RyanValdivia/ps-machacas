@@ -163,7 +163,7 @@ DATABASES = {
     }
 }
 
-print("✅ USANDO DB:", DATABASES["default"]["ENGINE"])
+print("USANDO DB:", DATABASES["default"]["ENGINE"])
 
 
 # Password validation
@@ -214,11 +214,11 @@ if getattr(sys, 'frozen', False):
     MEDIA_ROOT = os.path.join(APPDATA_DIR, 'media')
     os.makedirs(MEDIA_ROOT, exist_ok=True)
     os.makedirs(os.path.join(MEDIA_ROOT, 'company'), exist_ok=True)  # ← AGREGAR ESTA LÍNEA
-    print(f"📁 [PYINSTALLER] MEDIA_ROOT: {MEDIA_ROOT}")
+    print(f"[PYINSTALLER] MEDIA_ROOT: {MEDIA_ROOT}")
 else:
     # Desarrollo normal
     MEDIA_ROOT = BASE_DIR / 'media'
-    print(f"📁 [DEV] MEDIA_ROOT: {MEDIA_ROOT}")
+    print(f"[DEV] MEDIA_ROOT: {MEDIA_ROOT}")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
