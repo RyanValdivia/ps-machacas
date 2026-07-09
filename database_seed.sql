@@ -43,6 +43,13 @@ INSERT INTO "users_user_roles" ("id","user_id","role_id") VALUES
 (5,5,5)
 ON CONFLICT ("id") DO NOTHING;
 
+-- Cashes
+INSERT INTO "cash" ("cajCod","usuCod_id","cajNom","cajDes","cajEstado","created_at","updated_at") VALUES
+(1,1,'Caja Principal (Gerente)','Caja de administración','ACTIVO','2026-06-09 12:48:00.000000+00','2026-06-09 12:48:00.000000+00'),
+(2,2,'Caja 1 (Cajero)','Caja de facturación 1','ACTIVO','2026-06-09 12:48:00.000000+00','2026-06-09 12:48:00.000000+00'),
+(3,3,'Caja 2 (Vendedor)','Caja de ventas directas','ACTIVO','2026-06-09 12:48:00.000000+00','2026-06-09 12:48:00.000000+00')
+ON CONFLICT ("cajCod") DO NOTHING;
+
 -- Products
 INSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","prodColor","prodTalla","prodGenero","prodCostoInv","prodPrecioVenta","prodStock","prodStockMin","prodEstado","created_at","updated_at","catproCod_id","provCod_id","prodDescripcionAdicional","prodForma","prodTieneSobrelente") VALUES
 (1,'LUNA-PERS','LUNA PERSONALIZADA','PERSONALIZADO','N','','','Unisex',0,0,9999,0,'Active','2026-06-09 12:46:47.511963+00','2026-06-09 12:46:47.511963+00',3,1,'Producto genérico para lunas con configuración personalizada. NO consume stock.','',FALSE),

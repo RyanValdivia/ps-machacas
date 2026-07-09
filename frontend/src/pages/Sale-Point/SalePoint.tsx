@@ -24,7 +24,7 @@
         console.log("Todas las cajas:", allCashes);
 
         const filtered = allCashes.filter(c => {
-          if (user.roles?.some(r => r.rolNom === "CAJERO")) {
+          if (user.roles?.some(r => ["CAJERO", "VENDEDOR", "GERENTE"].includes(r.rolNom))) {
             return c.usuCod === user.usuCod;
           }     
           return false;

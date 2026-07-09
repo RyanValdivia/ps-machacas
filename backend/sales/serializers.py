@@ -336,9 +336,31 @@ class VentaCreateSerializer(serializers.ModelSerializer):
                 **detalle_data
             )
         
-        # Calcular totales
+        # Calcular totales iniciales
         venta.calcular_totales()
         venta.save()
+        
+        # Registrar pagos si vienen en la data inicial
+        if hasattr(self, 'initial_data'):
+            pagos_data = self.initial_data.get('pagos', [])
+            print(f"DEBUG - initial_data pagos: {pagos_data}", flush=True)
+            if pagos_data:
+                for pago in pagos_data:
+                    monto = pago.get('monto')
+                    print(f"DEBUG - procesando pago: {pago}, monto: {monto}", flush=True)
+                    if monto and float(monto) > 0:
+                        try:
+                            venta.registrar_pago(
+                                monto=monto,
+                                forma_pago=pago.get('formaPago', 'EFECTIVO'),
+                                referencia_pago=pago.get('referenciaPago', ''),
+                                tarjeta_tipo=pago.get('tarjetaTipo', '')
+                            )
+                            print("DEBUG - pago registrado exitosamente", flush=True)
+                        except Exception as e:
+                            print(f"DEBUG - Error al registrar pago: {e}", flush=True)
+        else:
+            print("DEBUG - no hasattr initial_data", flush=True)
         
         return venta
 
