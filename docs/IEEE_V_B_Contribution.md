@@ -28,7 +28,7 @@ Se implementaron cuatro escenarios para validar las funcionalidades principales 
 - **E2E-INV-03: Validación de Stock Crítico en POS**: Aplicación de BVA sobre productos con stock unitario, comprobando la venta del último artículo y el bloqueo de cantidades superiores al stock disponible.
 - **E2E-INV-04: Gestión de Proveedores**: Validación de la creación de proveedores y del criterio de frontera para el RUC (11 dígitos válidos frente a entradas inválidas).
 
-### 1.3. Módulo Clínico (CLI)
+### 1.3. Módulo Clientes (CLI)
 
 Se implementaron dos escenarios automatizados correspondientes a la Ruta Crítica 4 para expandir el Hito 3 del proyecto, aplicando las técnicas de Análisis de Valores Límite (BVA) y Partición de Equivalencia (PE):
 
