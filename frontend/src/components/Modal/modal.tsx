@@ -59,6 +59,9 @@ const Modal: React.FC<ModalProps> = ({
       {/* Contenedor del modal con animación */}
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
         <div 
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
           className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} max-h-[95vh] flex flex-col transform transition-all duration-300 ${
             isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
           }`}
@@ -66,7 +69,7 @@ const Modal: React.FC<ModalProps> = ({
         >
           {/* Header del modal */}
           <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-gray-200 flex-shrink-0">
-            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
+            <h3 id="modal-title" className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
               {title}
             </h3>
             <button
