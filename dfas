@@ -1,0 +1,413 @@
+[1mdiff --git a/.claude/settings.local.json b/.claude/settings.local.json[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4aefbd4[m
+[1m--- /dev/null[m
+[1m+++ b/.claude/settings.local.json[m
+[36m@@ -0,0 +1,23 @@[m
+[32m+[m[32m{[m
+[32m+[m[32m  "permissions": {[m
+[32m+[m[32m    "allow": [[m
+[32m+[m[32m      "Bash(git mv *)",[m
+[32m+[m[32m      "Bash(docker compose *)",[m
+[32m+[m[32m      "Bash(grep -E \"\\\\.\\(py|txt|ini|cfg|toml|yaml|yml\\)$\")",[m
+[32m+[m[32m      "Bash(pip install *)",[m
+[32m+[m[32m      "Bash(python -m pytest users/tests.py --cov=. --cov-report=term-missing)",[m
+[32m+[m[32m      "Bash(git add *)",[m
+[32m+[m[32m      "Bash(xxd infra/shared/docker/backend/entrypoint.sh)",[m
+[32m+[m[32m      "Bash(tr -d '\\\\r')",[m
+[32m+[m[32m      "Bash(mv /tmp/entrypoint_fixed.sh infra/shared/docker/backend/entrypoint.sh)",[m
+[32m+[m[32m      "Bash(git commit *)",[m
+[32m+[m[32m      "Bash(DJANGO_SETTINGS_MODULE=registrame.settings_test python -m pytest users/tests.py::TestLoginLogoutFunctions::test_logout_returns_correct_response sales/tests.py::TestVentaModel::test_venta_str sales/tests.py::TestVentaModel::test_venta_nombre_cliente sales/tests.py::TestVentaModel::test_registrar_pago sales/tests.py::TestVentaDetalleModel::test_detalle_devolver_stock sales/tests.py::TestEstadisticasDashboard::test_dashboard_ventas_pendientes sales/tests.py::TestVentaViewSet::test_comprobante_endpoint --tb=short -v)",[m
+[32m+[m[32m      "Bash(DJANGO_SETTINGS_MODULE=registrame.settings_test python -m pytest users/tests.py sales/tests.py --cov=users --cov=sales --cov-report=term-missing --tb=short -v)",[m
+[32m+[m[32m      "Bash(DJANGO_SETTINGS_MODULE=registrame.settings_test python -m pytest users/tests.py sales/tests.py --tb=line)",[m
+[32m+[m[32m      "Bash(DJANGO_SETTINGS_MODULE=registrame.settings_test python -m pytest users/tests.py sales/tests.py --cov=users --cov=sales --cov-report=term)",[m
+[32m+[m[32m      "Bash(python -m pytest suppliers/tests.py products/tests.py -v --tb=short)",[m
+[32m+[m[32m      "Bash(python -m pytest suppliers/tests.py -v --tb=short)",[m
+[32m+[m[32m      "Bash(python *)"[m
+[32m+[m[32m    ][m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[1mdiff --git a/.github/workflows/deploy-develop.yml b/.github/workflows/deploy-develop.yml[m
+[1mindex 0aa1d82..7a0356f 100644[m
+[1m--- a/.github/workflows/deploy-develop.yml[m
+[1m+++ b/.github/workflows/deploy-develop.yml[m
+[36m@@ -8,8 +8,6 @@[m [mon:[m
+ [m
+ env:[m
+   REGISTRY: ghcr.io[m
+[31m-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/registrame-backend[m
+[31m-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/registrame-frontend[m
+   IMAGE_TAG: develop[m
+ [m
+ jobs:[m
+[36m@@ -23,9 +21,17 @@[m [mjobs:[m
+       - name: Checkout[m
+         uses: actions/checkout@v4[m
+ [m
+[32m+[m[32m      - name: Normalize GHCR owner[m
+[32m+[m[32m        id: normalize[m
+[32m+[m[32m        shell: bash[m
+[32m+[m[32m        run: echo "GHCR_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"[m
+[32m+[m
+       - name: Set up Docker Buildx[m
+         uses: docker/setup-buildx-action@v3[m
+ [m
+[32m+[m[32m      - name: Set up QEMU[m
+[32m+[m[32m        uses: docker/setup-qemu-action@v3[m
+[32m+[m
+       - name: Log in to GHCR[m
+         uses: docker/login-action@v3[m
+         with:[m
+[36m@@ -39,9 +45,10 @@[m [mjobs:[m
+           context: .[m
+           file: infra/shared/docker/backend/Dockerfile[m
+           push: true[m
+[32m+[m[32m          platforms: linux/amd64,linux/arm64[m
+           tags: |[m
+[31m-            ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}[m
+[31m-            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-backend:${{ env.IMAGE_TAG }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-backend:${{ github.sha }}[m
+ [m
+       - name: Build and push frontend[m
+         uses: docker/build-push-action@v6[m
+[36m@@ -49,9 +56,10 @@[m [mjobs:[m
+           context: .[m
+           file: infra/shared/docker/frontend/Dockerfile[m
+           push: true[m
+[32m+[m[32m          platforms: linux/amd64,linux/arm64[m
+           tags: |[m
+[31m-            ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}[m
+[31m-            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-frontend:${{ env.IMAGE_TAG }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-frontend:${{ github.sha }}[m
+ [m
+   deploy:[m
+     runs-on: ubuntu-latest[m
+[36m@@ -69,6 +77,8 @@[m [mjobs:[m
+           script: |[m
+             set -e[m
+             cd "${{ secrets.VPS_APP_DIR }}"[m
+[32m+[m[32m            git fetch --all[m
+[32m+[m[32m            git checkout develop[m
+             git pull[m
+             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin[m
+             docker compose --env-file infra/develop/.env -f infra/develop/compose.yml pull[m
+[1mdiff --git a/.github/workflows/deploy-qa.yml b/.github/workflows/deploy-qa.yml[m
+[1mindex c6bc7cb..3502991 100644[m
+[1m--- a/.github/workflows/deploy-qa.yml[m
+[1m+++ b/.github/workflows/deploy-qa.yml[m
+[36m@@ -14,6 +14,21 @@[m [mjobs:[m
+   test:[m
+     runs-on: ubuntu-latest[m
+ [m
+[32m+[m[32m    services:[m
+[32m+[m[32m      postgres:[m
+[32m+[m[32m        image: postgres:16-alpine[m
+[32m+[m[32m        env:[m
+[32m+[m[32m          POSTGRES_DB: test_db[m
+[32m+[m[32m          POSTGRES_USER: test[m
+[32m+[m[32m          POSTGRES_PASSWORD: test[m
+[32m+[m[32m        ports:[m
+[32m+[m[32m          - 5432:5432[m
+[32m+[m[32m        options: >-[m
+[32m+[m[32m          --health-cmd pg_isready[m
+[32m+[m[32m          --health-interval 10s[m
+[32m+[m[32m          --health-timeout 5s[m
+[32m+[m[32m          --health-retries 5[m
+[32m+[m
+     defaults:[m
+       run:[m
+         working-directory: backend[m
+[36m@@ -33,7 +48,15 @@[m [mjobs:[m
+           pip install -r ../infra/shared/docker/backend/requirements.txt[m
+ [m
+       - name: Run tests with coverage[m
+[31m-        run: python -m pytest --cov=. --cov-report=term-missing --cov-fail-under=25[m
+[32m+[m[32m        run: python -m pytest --cov=. --cov-report=term-missing[m
+[32m+[m[32m        env:[m
+[32m+[m[32m          DJANGO_SETTINGS_MODULE: registrame.settings_test[m
+[32m+[m[32m          DB_ENGINE: django.db.backends.postgresql[m
+[32m+[m[32m          DB_NAME: test_db[m
+[32m+[m[32m          DB_USER: test[m
+[32m+[m[32m          DB_PASSWORD: test[m
+[32m+[m[32m          DB_HOST: localhost[m
+[32m+[m[32m          DB_PORT: 5432[m
+ [m
+   build:[m
+     runs-on: ubuntu-latest[m
+[36m@@ -46,6 +69,11 @@[m [mjobs:[m
+       - name: Checkout[m
+         uses: actions/checkout@v4[m
+ [m
+[32m+[m[32m      - name: Normalize GHCR owner[m
+[32m+[m[32m        id: normalize[m
+[32m+[m[32m        shell: bash[m
+[32m+[m[32m        run: echo "GHCR_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"[m
+[32m+[m
+       - name: Set up Docker Buildx[m
+         uses: docker/setup-buildx-action@v3[m
+ [m
+[36m@@ -67,7 +95,7 @@[m [mjobs:[m
+           push: true[m
+           platforms: linux/amd64,linux/arm64[m
+           tags: |[m
+[31m-            ghcr.io/${{ github.repository_owner }}/registrame-backend:${{ env.IMAGE_TAG }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-backend:${{ env.IMAGE_TAG }}[m
+ [m
+       - name: Build and push frontend[m
+         uses: docker/build-push-action@v6[m
+[36m@@ -77,7 +105,7 @@[m [mjobs:[m
+           push: true[m
+           platforms: linux/amd64,linux/arm64[m
+           tags: |[m
+[31m-            ghcr.io/${{ github.repository_owner }}/registrame-frontend:${{ env.IMAGE_TAG }}[m
+[32m+[m[32m            ghcr.io/${{ env.GHCR_OWNER }}/registrame-frontend:${{ env.IMAGE_TAG }}[m
+ [m
+   deploy:[m
+     runs-on: ubuntu-latest[m
+[36m@@ -95,11 +123,43 @@[m [mjobs:[m
+           script: |[m
+             set -e[m
+             cd "${{ secrets.VPS_QA_APP_DIR }}"[m
+[32m+[m[32m            git fetch --all[m
+[32m+[m[32m            git checkout qa[m
+             git pull[m
+             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin[m
+             docker compose --env-file infra/qa/.env -f infra/qa/compose.yml pull[m
+[31m-            docker compose --env-file infra/qa/.env -f infra/qa/compose.yml up -d --remove-orphans[m
+[32m+[m[32m            docker compose --env-file infra/qa/.env -f infra/qa/compose.yml up -d --remove-orphans --force-recreate[m
+             docker image prune -f[m
+         env:[m
+           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}[m
+           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}[m
+[32m+[m
+[32m+[m[32m  seed:[m
+[32m+[m[32m    runs-on: ubuntu-latest[m
+[32m+[m[32m    needs: deploy[m
+[32m+[m
+[32m+[m[32m    steps:[m
+[32m+[m[32m      - name: Checkout[m
+[32m+[m[32m        uses: actions/checkout@v4[m
+[32m+[m
+[32m+[m[32m      - name: Seed QA database[m
+[32m+[m[32m        uses: appleboy/ssh-action@v1.0.3[m
+[32m+[m[32m        with:[m
+[32m+[m[32m          host: ${{ secrets.VPS_HOST }}[m
+[32m+[m[32m          username: ${{ secrets.VPS_USER }}[m
+[32m+[m[32m          key: ${{ secrets.VPS_SSH_KEY }}[m
+[32m+[m[32m          script_stop: false[m
+[32m+[m[32m          envs: VPS_QA_APP_DIR[m
+[32m+[m[32m          script: |[m
+[32m+[m[32m            cd "$VPS_QA_APP_DIR"[m
+[32m+[m[32m            echo "Waiting for QA database..."[m
+[32m+[m[32m            for i in $(seq 1 30); do[m
+[32m+[m[32m              docker exec registrame-qa-db pg_isready -U postgres && break[m
+[32m+[m[32m              echo "DB not ready, retrying in 2s..."[m
+[32m+[m[32m              sleep 2[m
+[32m+[m[32m            done[m
+[32m+[m[32m            echo "Running seed..."[m
+[32m+[m[32m            docker exec -i registrame-qa-db psql -U postgres -d registrame_qa_db < database_seed.sql[m
+[32m+[m[32m            echo "Seed complete."[m
+[32m+[m[32m        env:[m
+[32m+[m[32m          VPS_QA_APP_DIR: ${{ secrets.VPS_QA_APP_DIR }}[m
+[1mdiff --git a/.github/workflows/tests.yml b/.github/workflows/tests.yml[m
+[1mdeleted file mode 100644[m
+[1mindex 2badbe3..0000000[m
+[1m--- a/.github/workflows/tests.yml[m
+[1m+++ /dev/null[m
+[36m@@ -1,35 +0,0 @@[m
+[31m-name: Run tests[m
+[31m-[m
+[31m-on:[m
+[31m-  push:[m
+[31m-    branches:[m
+[31m-      - develop[m
+[31m-      - qa[m
+[31m-  pull_request:[m
+[31m-    branches:[m
+[31m-      - qa[m
+[31m-[m
+[31m-jobs:[m
+[31m-  test:[m
+[31m-    runs-on: ubuntu-latest[m
+[31m-[m
+[31m-    defaults:[m
+[31m-      run:[m
+[31m-        working-directory: backend[m
+[31m-[m
+[31m-    steps:[m
+[31m-      - name: Checkout[m
+[31m-        uses: actions/checkout@v4[m
+[31m-[m
+[31m-      - name: Set up Python[m
+[31m-        uses: actions/setup-python@v5[m
+[31m-        with:[m
+[31m-          python-version: "3.12"[m
+[31m-[m
+[31m-      - name: Install dependencies[m
+[31m-        run: |[m
+[31m-          pip install -r requirements-dev.txt[m
+[31m-          pip install -r ../infra/shared/docker/backend/requirements.txt[m
+[31m-[m
+[31m-      - name: Run tests with coverage[m
+[31m-        run: python -m pytest --cov=. --cov-report=term-missing --cov-fail-under=25[m
+[1mdiff --git a/backend/.coveragerc b/backend/.coveragerc[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e757640[m
+[1m--- /dev/null[m
+[1m+++ b/backend/.coveragerc[m
+[36m@@ -0,0 +1,13 @@[m
+[32m+[m[32m[run][m
+[32m+[m[32momit =[m
+[32m+[m[32m    */migrations/*[m
+[32m+[m[32m    */__pycache__/*[m
+[32m+[m
+[32m+[m[32m[report][m
+[32m+[m[32mexclude_lines =[m
+[32m+[m[32m    pragma: no cover[m
+[32m+[m[32m    def __repr__[m
+[32m+[m[32m    raise AssertionError[m
+[32m+[m[32m    raise NotImplementedError[m
+[32m+[m[32m    if TYPE_CHECKING:[m
+[32m+[m[32m    if __name__ == .__main__.:[m
+[1mdiff --git a/backend/_check_db.py b/backend/_check_db.py[m
+[1mnew file mode 100644[m
+[1mindex 0000000..c0785a9[m
+[1m--- /dev/null[m
+[1m+++ b/backend/_check_db.py[m
+[36m@@ -0,0 +1,12 @@[m
+[32m+[m[32mimport os[m
+[32m+[m[32mos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'registrame.settings')[m
+[32m+[m[32mimport django[m
+[32m+[m[32mdjango.setup()[m
+[32m+[m[32mfrom django.conf import settings[m
+[32m+[m[32mdb = settings.DATABASES['default'][m
+[32m+[m[32mprint(f"ENGINE: {db['ENGINE']}")[m
+[32m+[m[32mprint(f"NAME: {db['NAME']}")[m
+[32m+[m[32mprint(f"USER: {db['USER']}")[m
+[32m+[m[32mprint(f"HOST: {db['HOST']}")[m
+[32m+[m[32mprint(f"PORT: {db['PORT']}")[m
+[32m+[m[32mprint(f"PASSWORD has len: {len(db['PASSWORD'])}")[m
+[1mdiff --git a/backend/cash/tests.py b/backend/cash/tests.py[m
+[1mindex 7ce503c..8c825c7 100644[m
+[1m--- a/backend/cash/tests.py[m
+[1m+++ b/backend/cash/tests.py[m
+[36m@@ -1,3 +1,639 @@[m
+[31m-from django.test import TestCase[m
+[32m+[m[32mimport pytest[m
+[32m+[m[32mfrom decimal import Decimal[m
+[32m+[m[32mfrom django.core.exceptions import ValidationError[m
+ [m
+[31m-# Create your tests here.[m
+[32m+[m
+[32m+[m[32m@pytest.mark.django_db[m
+[32m+[m[32mclass TestCashModel:[m
+[32m+[m[32m    # TEST: crear caja con todos los campos[m
+[32m+[m[32m    def test_create_cash(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero1", usuContra="pass", usuEmail="cajero1@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Principal", cajDes="Caja del local")[m
+[32m+[m[32m        assert caja.cajNom == "Caja Principal"[m
+[32m+[m[32m        assert caja.cajDes == "Caja del local"[m
+[32m+[m[32m        assert caja.usuCod == user[m
+[32m+[m[32m        assert caja.cajEstado == "ACTIVO"[m
+[32m+[m
+[32m+[m[32m    # TEST: str representation[m
+[32m+[m[32m    def test_str(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero2", usuContra="pass", usuEmail="cajero2@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Dos")[m
+[32m+[m[32m        assert str(caja) == "Caja Dos"[m
+[32m+[m
+[32m+[m[32m    # TEST: clean rechaza nombre menor a 3 caracteres[m
+[32m+[m[32m    def test_nombre_min_length(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero3", usuContra="pass", usuEmail="cajero3@test.com")[m
+[32m+[m[32m        caja = Cash(usuCod=user, cajNom="AB")[m
+[32m+[m[32m        with pytest.raises(ValidationError):[m
+[32m+[m[32m            caja.clean()[m
+[32m+[m
+[32m+[m[32m    # TEST: unique constraint en cajNom[m
+[32m+[m[32m    def test_unique_nombre(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        from django.db import IntegrityError[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero4", usuContra="pass", usuEmail="cajero4@test.com")[m
+[32m+[m[32m        Cash.objects.create(usuCod=user, cajNom="Unica")[m
+[32m+[m[32m        with pytest.raises(IntegrityError):[m
+[32m+[m[32m            Cash.objects.create(usuCod=user, cajNom="Unica")[m
+[32m+[m
+[32m+[m[32m    # TEST: default estado is ACTIVO[m
+[32m+[m[32m    def test_default_estado(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero5", usuContra="pass", usuEmail="cajero5@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Default")[m
+[32m+[m[32m        assert caja.cajEstado == "ACTIVO"[m
+[32m+[m
+[32m+[m[32m    # TEST: tiene_apertura_activa False sin aperturas[m
+[32m+[m[32m    def test_tiene_apertura_activa_false(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero6", usuContra="pass", usuEmail="cajero6@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Sin Apertura")[m
+[32m+[m[32m        assert caja.tiene_apertura_activa is False[m
+[32m+[m
+[32m+[m[32m    # TEST: apertura_actual es None sin aperturas[m
+[32m+[m[32m    def test_apertura_actual_none(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero7", usuContra="pass", usuEmail="cajero7@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Sin Apertura 2")[m
+[32m+[m[32m        assert caja.apertura_actual is None[m
+[32m+[m
+[32m+[m[32m    # TEST: creacion sin descripcion (null)[m
+[32m+[m[32m    def test_create_cash_sin_descripcion(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero8", usuContra="pass", usuEmail="cajero8@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Sin Desc")[m
+[32m+[m[32m        assert caja.cajDes is None[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@pytest.mark.django_db[m
+[32m+[m[32mclass TestCashOpeningModel:[m
+[32m+[m[32m    # TEST: crear apertura con todos los campos[m
+[32m+[m[32m    def test_create_opening(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash, CashOpening[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero10", usuContra="pass", usuEmail="cajero10@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Apertura")[m
+[32m+[m[32m        apertura = CashOpening.objects.create(cajCod=caja, usuCod=user, cajaAperMontInicial=Decimal('500.00'))[m
+[32m+[m[32m        assert apertura.cajaAperMontInicial == Decimal('500.00')[m
+[32m+[m[32m        assert apertura.cajaAperEstado == "ABIERTA"[m
+[32m+[m[32m        assert apertura.cajCod == caja[m
+[32m+[m[32m        assert apertura.usuCod == user[m
+[32m+[m
+[32m+[m[32m    # TEST: str representation[m
+[32m+[m[32m    def test_str(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash, CashOpening[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero11", usuContra="pass", usuEmail="cajero11@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Str")[m
+[32m+[m[32m        apertura = CashOpening.objects.create(cajCod=caja, usuCod=user, cajaAperMontInicial=Decimal('100.00'))[m
+[32m+[m[32m        assert str(apertura) == f"Apertura #{apertura.cajaAperCod} - Caja Str (ABIERTA)"[m
+[32m+[m
+[32m+[m[32m    # TEST: default estado es ABIERTA[m
+[32m+[m[32m    def test_default_estado(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash, CashOpening[m
+[32m+[m[32m        user = User.objects.create_user(usuNom="cajero12", usuContra="pass", usuEmail="cajero12@test.com")[m
+[32m+[m[32m        caja = Cash.objects.create(usuCod=user, cajNom="Caja Default Apertura")[m
+[32m+[m[32m        apertura = CashOpening.objects.create(cajCod=caja, usuCod=user, cajaAperMontInicial=Decimal('200.00'))[m
+[32m+[m[32m        assert apertura.cajaAperEstado == "ABIERTA"[m
+[32m+[m
+[32m+[m[32m    # TEST: clean rechaza monto inicial negativo[m
+[32m+[m[32m    def test_monto_inicial_negativo(self):[m
+[32m+[m[32m        from users.models import User[m
+[32m+[m[32m        from cash.models import Cash, CashOpening[m
+[32m+[m[32m   
