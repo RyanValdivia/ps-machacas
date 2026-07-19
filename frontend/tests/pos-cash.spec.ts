@@ -39,7 +39,7 @@ test.describe.serial('Módulo POS - Cierre de Caja (IEEE §V.B)', () => {
     await page.getByRole('button', { name: /^Agregar$/i }).click();
     await page.getByRole('button', { name: /Procesar Venta/i }).click();
     await page.getByRole('button', { name: /Confirmar e Imprimir/i }).click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('#swal2-title')).toBeVisible({ timeout: 8000 }); // Wait for success swal
     await page.keyboard.press('Escape'); // close swal
     
     // Now close cash

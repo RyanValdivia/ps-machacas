@@ -66,7 +66,7 @@ test.describe.serial('Módulo POS - Pagos Parciales (IEEE §V.B)', () => {
 
   test('E2E-POS-05: Registro de pago de saldo pendiente', async ({ page }) => {
     await page.goto('/sales');
-    await page.waitForTimeout(1000); // Wait for load
+    await page.waitForLoadState('networkidle'); // Wait for load
 
     // Expandir filtros avanzados
     await page.getByRole('button', { name: /Filtros/i }).click();
@@ -74,7 +74,7 @@ test.describe.serial('Módulo POS - Pagos Parciales (IEEE §V.B)', () => {
     // Filter by PARCIAL
     const selectEstado = page.locator('select').first();
     await selectEstado.selectOption('PARCIAL');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
 
     // Click "Gestionar" on the first result
     await page.getByTitle('Gestionar venta').first().click();

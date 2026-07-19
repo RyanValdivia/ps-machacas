@@ -36,11 +36,11 @@ test.describe.serial('Módulo POS - Anulación de Venta (IEEE §V.B)', () => {
     await page.getByRole('button', { name: /^Agregar$/i }).click();
     await page.getByRole('button', { name: /Procesar Venta/i }).click();
     await page.getByRole('button', { name: /Confirmar e Imprimir/i }).click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('#swal2-title')).toBeVisible({ timeout: 8000 }); // Wait for success swal
     await page.keyboard.press('Escape'); // close swal
 
     await page.goto('/sales');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     // Click "Gestionar" on the first result
     await page.getByTitle('Gestionar venta').first().click();
