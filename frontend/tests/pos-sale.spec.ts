@@ -11,8 +11,8 @@ test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
   test('E2E-POS-01: Apertura de caja exitosa con Análisis de Valores Límite', async ({ page }) => {
     await page.goto('/sale-point');
     
-    // Esperamos un segundo a que redireccione si la caja está cerrada
-    await page.waitForTimeout(1500);
+    // Esperamos a que la URL se estabilice (redirige a open-cash o queda en sale-point)
+    await page.waitForURL(/sale-point/, { timeout: 8000 });
 
     // Si no estamos en open-cash, significa que la caja ya estaba abierta.
     if (!page.url().includes('open-cash')) {
@@ -23,9 +23,9 @@ test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
     const montoInicialInput = page.getByPlaceholder('S/ 0.00').first();
     await montoInicialInput.fill('0');
     
-    // Esperamos que carguen las cajas en el select
-    await page.waitForTimeout(1000);
+    // Esperamos que aparezca al menos la segunda opción (la primera real, no el placeholder)
     const selectCaja = page.locator('select#caja');
+    await expect(selectCaja.locator('option').nth(1)).toBeAttached({ timeout: 8000 });
     const count = await selectCaja.locator('option').count();
     if (count > 1) {
       await selectCaja.selectOption({ index: 1 });
@@ -54,8 +54,8 @@ test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
 
     await page.goto('/sale-point');
 
-    // Esperar a que cargue la interfaz del punto de venta
-    await page.waitForTimeout(1500);
+    // Esperar a que la URL se estabilice (sale-point o redirige a open-cash)
+    await page.waitForURL(/sale-point/, { timeout: 8000 });
 
     // Si nos redirige a open-cash, la caja está cerrada, no podemos vender
     if (page.url().includes('open-cash')) {
@@ -99,7 +99,7 @@ test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
 
   test('E2E-POS-03: Venta con luna personalizada', async ({ page }) => {
     await page.goto('/sale-point');
-    await page.waitForTimeout(1500);
+    await page.waitForURL(/sale-point/, { timeout: 8000 });
 
     if (page.url().includes('open-cash')) {
       test.skip(true, 'La caja está cerrada, no se puede hacer venta.');
