@@ -56,11 +56,11 @@ test.describe.serial('Módulo POS - Anulación de Venta (IEEE §V.B)', () => {
     await divAnularVenta.click();
 
     // Reason
-    const reasonInput = page.getByPlaceholder(/Razón de la anulación/i);
+    const reasonInput = page.getByPlaceholder(/Escriba el motivo/i);
     await reasonInput.fill('Error en prueba E2E');
 
     // Confirm inside the form
-    const btnConfirmarAnular = page.getByRole('button', { name: /^Anular Venta$/i }).nth(1);
+    const btnConfirmarAnular = page.getByRole('button', { name: /Confirmar Anulación/i });
     await btnConfirmarAnular.click();
 
     // Confirm sweetalert

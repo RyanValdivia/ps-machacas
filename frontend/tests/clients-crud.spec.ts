@@ -27,11 +27,11 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
   test('E2E-CLI-01 — Registro de cliente con DNI duplicado @acceptance', async ({ page }) => {
     try {
       // a) Iniciar sesión mediante el helper auth.ts
-      await loginAs(page, 'admin', 'admin123');
+      await loginAs(page, 'gerente1', 'Admin123!');
 
       // Esperar a que la interfaz cargue completamente y se estabilice
       await page.waitForSelector('nav, button:has-text("Cerrar Sesión"), [href*="logout"]', { timeout: 15000 });
-      await page.waitForSelector('aside:has-text("admin")', { timeout: 15000 });
+      await page.waitForSelector('aside:has-text("gerente1")', { timeout: 15000 });
 
       // b) Navegar a la ruta /prescriptions haciendo clic en la opción del sidebar "Clientes"
       await page.click('a:has-text("Clientes")');
@@ -95,11 +95,11 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
   test('E2E-CLI-02 — Registro de receta óptica @acceptance', async ({ page }) => {
     try {
       // a) Asegurar la existencia de un cliente activo en el sistema
-      await loginAs(page, 'admin', 'admin123');
+      await loginAs(page, 'gerente1', 'Admin123!');
       
       // Esperar a que la interfaz cargue completamente y se estabilice
       await page.waitForSelector('nav, button:has-text("Cerrar Sesión"), [href*="logout"]', { timeout: 15000 });
-      await page.waitForSelector('aside:has-text("admin")', { timeout: 15000 });
+      await page.waitForSelector('aside:has-text("gerente1")', { timeout: 15000 });
 
       // b) Navegar a /prescriptions haciendo clic en el sidebar "Clientes"
       await page.click('a:has-text("Clientes")');

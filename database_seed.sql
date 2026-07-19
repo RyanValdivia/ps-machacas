@@ -71,13 +71,16 @@ INSERT INTO "product" ("prodCod","prodCode","prodDescr","prodMarca","prodMate","
 ON CONFLICT ("prodCod") DO NOTHING;
 
 -- Product sequences
+-- NOTE: migration sequences.0002_initialize_sequences already creates these 5 rows
+-- (ids 1-5) with current_value=0, so this must UPDATE them to match the products
+-- seeded below, or new products would generate codes that collide with existing ones.
 INSERT INTO "product_sequence" ("id","sequence_type","current_value","description","created_at","updated_at") VALUES
 (1,'A',0,'Monturas de Acetato','2026-06-09 12:46:47.892902+00','2026-06-09 12:46:47.892902+00'),
 (2,'M',14,'Monturas de Metal','2026-06-09 12:46:47.894895+00','2026-06-09 12:46:47.894895+00'),
 (3,'TR',0,'Monturas TR','2026-06-09 12:46:47.896899+00','2026-06-09 12:46:47.896899+00'),
 (4,'C',0,'Monturas de Carey','2026-06-09 12:46:47.897896+00','2026-06-09 12:46:47.897896+00'),
 (5,'GENERAL',1,'Productos no monturas','2026-06-09 12:46:47.900273+00','2026-06-09 12:46:47.900273+00')
-ON CONFLICT ("id") DO NOTHING;
+ON CONFLICT ("id") DO UPDATE SET current_value = EXCLUDED.current_value;
 
 -- Luna materials
 INSERT INTO "luna_material" ("lunMatCod","lunMatNombre","lunMatDescripcion","lunMatActivo") VALUES
@@ -125,5 +128,21 @@ INSERT INTO "luna_configuracion" ("lunConfCod","lunConfPrecioBase","lunConfActiv
 (14,150,TRUE,5,2),
 (15,240,TRUE,5,3)
 ON CONFLICT ("lunConfCod") DO NOTHING;
+
+-- Resync auto-increment sequences after raw inserts with explicit PKs.
+-- Without this, the next ORM-created row reuses an already-taken PK and
+-- fails with IntegrityError (duplicate key value violates unique constraint).
+SELECT setval(pg_get_serial_sequence('categories_productcategory', 'catproCod'), (SELECT MAX("catproCod") FROM "categories_productcategory"));
+SELECT setval(pg_get_serial_sequence('suppliers_supplier', 'provCod'), (SELECT MAX("provCod") FROM "suppliers_supplier"));
+SELECT setval(pg_get_serial_sequence('users_role', 'rolCod'), (SELECT MAX("rolCod") FROM "users_role"));
+SELECT setval(pg_get_serial_sequence('users_user', 'usuCod'), (SELECT MAX("usuCod") FROM "users_user"));
+SELECT setval(pg_get_serial_sequence('users_user_roles', 'id'), (SELECT MAX("id") FROM "users_user_roles"));
+SELECT setval(pg_get_serial_sequence('cash', 'cajCod'), (SELECT MAX("cajCod") FROM "cash"));
+SELECT setval(pg_get_serial_sequence('product', 'prodCod'), (SELECT MAX("prodCod") FROM "product"));
+SELECT setval(pg_get_serial_sequence('product_sequence', 'id'), (SELECT MAX("id") FROM "product_sequence"));
+SELECT setval(pg_get_serial_sequence('luna_material', 'lunMatCod'), (SELECT MAX("lunMatCod") FROM "luna_material"));
+SELECT setval(pg_get_serial_sequence('luna_tipo', 'lunTipCod'), (SELECT MAX("lunTipCod") FROM "luna_tipo"));
+SELECT setval(pg_get_serial_sequence('luna_caracteristica', 'lunCarCod'), (SELECT MAX("lunCarCod") FROM "luna_caracteristica"));
+SELECT setval(pg_get_serial_sequence('luna_configuracion', 'lunConfCod'), (SELECT MAX("lunConfCod") FROM "luna_configuracion"));
 
 COMMIT;

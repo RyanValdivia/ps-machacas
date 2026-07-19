@@ -2,8 +2,8 @@ import { test, expect, type Page } from '@playwright/test';
 
 // Helper robusto para login
 async function loginAs(page: Page, username: string, password: string) {
-  await page.goto('http://localhost:8080/');
-  
+  await page.goto('/');
+
   // 1. Asegurar el foco e introducir texto simulando pulsaciones reales
   await page.locator('#username').focus();
   await page.locator('#username').pressSequentially(username, { delay: 50 });
@@ -21,11 +21,11 @@ async function loginAs(page: Page, username: string, password: string) {
 test.describe('E2E-INV-02: Búsqueda y filtrado de productos', () => {
   
   test('Debería buscar PEGASUS y filtrar por material Metal @acceptance', async ({ page }) => {
-    // a) Realizar login con la función robusta que apunta a http://localhost:8080
-    await loginAs(page, 'admin', 'admin123');
-    
+    // a) Realizar login con la función robusta
+    await loginAs(page, 'logistica1', 'Admin123!');
+
     // b) Ir a /inventory
-    await page.goto('http://localhost:8080/inventory');
+    await page.goto('/inventory');
     
     // Esperar que la vista de inventario esté completamente cargada
     await expect(page.locator('h2:has-text("Inventario de Productos")')).toBeVisible({ timeout: 10000 });

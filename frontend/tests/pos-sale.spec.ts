@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers/auth';
+import { loginAs, resetProductStock } from './helpers/auth';
 
 // Use serial so E2E-POS-01 opens the box for E2E-POS-02 and 03
 test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
@@ -47,9 +47,13 @@ test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
     await page.screenshot({ path: 'test-results/E2E-POS-01.png' });
   });
 
-  test('E2E-POS-02: Venta simple de montura con stock límite', async ({ page }) => {
+  test('E2E-POS-02: Venta simple de montura con stock límite', async ({ page, request }) => {
+    // Reset vía API REST: M1 puede haber sido consumido por otro proyecto de
+    // browser (chromium/firefox/webkit) corriendo contra la misma BD compartida.
+    await resetProductStock(request, 'M1', 1);
+
     await page.goto('/sale-point');
-    
+
     // Esperar a que cargue la interfaz del punto de venta
     await page.waitForTimeout(1500);
 

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
+import { resetProductStock } from './helpers/auth';
 
 // Helper robusto para login
 async function loginAs(page: Page, username: string, password: string) {
@@ -8,8 +9,8 @@ async function loginAs(page: Page, username: string, password: string) {
     console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`);
   });
 
-  await page.goto('http://localhost:8080/');
-  
+  await page.goto('/');
+
   // 1. Asegurar el foco e introducir texto simulando pulsaciones reales
   await page.locator('#username').focus();
   await page.locator('#username').pressSequentially(username, { delay: 50 });
@@ -26,7 +27,7 @@ async function loginAs(page: Page, username: string, password: string) {
 
 // Asegurar que la caja registradora está abierta para poder vender
 async function ensureCashSessionOpen(page: Page) {
-  await page.goto('http://localhost:8080/sale-point');
+  await page.goto('/sale-point');
   
   const openCashHeader = page.locator('h2:has-text("Abrir Caja Registradora")');
   const posHeader = page.locator('h1:has-text("Punto de Venta")');
@@ -52,7 +53,13 @@ async function ensureCashSessionOpen(page: Page) {
 test.describe('E2E-INV-03: Validación de stock insuficiente (Alta prioridad 🔴)', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test.beforeEach(async () => {
+  test.beforeEach(async ({ request }) => {
+    // Reset vía API REST: funciona en CI (no depende de Docker) y es idempotente
+    // sin importar qué proyecto de browser (chromium/firefox/webkit) corra primero,
+    // ya que los 3 comparten la misma BD dentro de un mismo job.
+    await resetProductStock(request, 'M1', 1);
+    await resetProductStock(request, 'M2', 1);
+
     try {
       // BVA Myers: Forzar que el producto PEGASUS (código M1) tenga exactamente Stock = 1
       // También preparamos la caja registradora para el usuario 'admin' y cerramos cualquier sesión abierta que genere conflictos
@@ -62,22 +69,23 @@ from cash.models import Cash, CashOpening
 from users.models import User
 from sales.models import Venta
 
-# Asegurar stock = 1 para M1
-p = Product.objects.filter(prodCode='M1').first()
-if p:
-    p.prodStock = 1
-    p.prodEstado = 'Active'
-    p.save()
+# Asegurar stock = 1 para M1 y M2
+for code in ('M1', 'M2'):
+    p = Product.objects.filter(prodCode=code).first()
+    if p:
+        p.prodStock = 1
+        p.prodEstado = 'Active'
+        p.save()
 
 # Borrar todas las ventas para evitar ProtectedError al limpiar aperturas de caja
 Venta.objects.all().delete()
 
-# Asegurar caja asignada a admin y sin aperturas conflictivas
-admin_user = User.objects.filter(usuNom='admin').first()
-if admin_user:
-    CashOpening.objects.filter(usuCod=admin_user, cajaAperEstado='ABIERTA').delete()
-    caja, _ = Cash.objects.get_or_create(cajNom='Caja Principal', defaults={'usuCod': admin_user, 'cajEstado': 'ACTIVO'})
-    caja.usuCod = admin_user
+# Asegurar caja asignada a vendedor1 y sin aperturas conflictivas
+vendedor_user = User.objects.filter(usuNom='vendedor1').first()
+if vendedor_user:
+    CashOpening.objects.filter(usuCod=vendedor_user, cajaAperEstado='ABIERTA').delete()
+    caja, _ = Cash.objects.get_or_create(cajNom='Caja Principal', defaults={'usuCod': vendedor_user, 'cajEstado': 'ACTIVO'})
+    caja.usuCod = vendedor_user
     caja.cajEstado = 'ACTIVO'
     caja.save()
     CashOpening.objects.filter(cajCod=caja, cajaAperEstado='ABIERTA').delete()
@@ -96,13 +104,15 @@ print('DB Prepared Successfully')
   });
 
   test('Caso 1: Permitir agregar exactamente 1 unidad al carrito y procesar la venta @acceptance', async ({ page }) => {
-    await loginAs(page, 'admin', 'admin123');
+    await loginAs(page, 'vendedor1', 'Admin123!');
     await ensureCashSessionOpen(page);
 
-    // Buscar el producto M1 (PEGASUS con stock = 1)
+    // Buscar el producto M2 (PEGASUS con stock = 1)
+    // NOTA: se usa M2 (no M1) para no consumir el stock que necesitan
+    // los Casos 2 y 3 de este archivo y E2E-POS-02 en pos-sale.spec.ts.
     const searchInput = page.locator('input[placeholder="Buscar por código..."]');
-    await searchInput.fill('M1');
-    
+    await searchInput.fill('M2');
+
     // Esperar a que aparezca la coincidencia exacta
     const resultItem = page.locator('.cursor-pointer').filter({ hasText: 'PEGASUS' }).first();
     await expect(resultItem).toBeVisible({ timeout: 5000 });
@@ -141,7 +151,7 @@ print('DB Prepared Successfully')
   });
 
   test('Caso 2: Bloquear intento de agregar 2 unidades (Stock + 1) mostrando advertencia de stock insuficiente @acceptance', async ({ page }) => {
-    await loginAs(page, 'admin', 'admin123');
+    await loginAs(page, 'vendedor1', 'Admin123!');
     await ensureCashSessionOpen(page);
 
     // Buscar el producto M1
@@ -175,7 +185,7 @@ print('DB Prepared Successfully')
   });
 
   test('Caso 3: Impedir agregar 0 unidades (Validar bloqueo de decremento por debajo de 1 en la interfaz) @acceptance', async ({ page }) => {
-    await loginAs(page, 'admin', 'admin123');
+    await loginAs(page, 'vendedor1', 'Admin123!');
     await ensureCashSessionOpen(page);
 
     // Buscar el producto M1
