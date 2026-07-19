@@ -40,14 +40,12 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
       
       // Esperar a que cargue la tabla de clientes y se estabilice el DOM
       await page.waitForSelector('table', { timeout: 10000 });
-      await page.waitForTimeout(1000);
 
       // Generar un DNI único para registrar al primer cliente
       const uniqueDni = Math.floor(10000000 + Math.random() * 90000000).toString();
 
       // c) Hacer clic en el botón o elemento interactivo "Nuevo Cliente"
       await page.click('button:has-text("Nuevo Cliente")');
-      await page.waitForTimeout(500); // Evitar race condition de useEffect del Modal
       await expect(page.locator('h3').first()).toHaveText('Agregar Cliente', { timeout: 5000 });
 
       // d) Llenar el formulario de cliente
@@ -61,11 +59,11 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
 
       // Esperar a que el modal se cierre
       await expect(page.locator('h3:has-text("Cliente")')).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1000); // Dar un momento para el reload
+      await page.fill('input[placeholder="Buscar por nombre Completo o DNI"]', uniqueDni);
+      await expect(page.locator('tr').filter({ hasText: uniqueDni })).toBeVisible({ timeout: 10000 });
 
       // Intentar registrar el mismo DNI por segunda vez para forzar el duplicado
       await page.click('button:has-text("Nuevo Cliente")');
-      await page.waitForTimeout(500); // Evitar race condition de useEffect del Modal
       await expect(page.locator('h3').first()).toHaveText('Agregar Cliente', { timeout: 5000 });
 
       await page.fill('#cliNumDoc', uniqueDni);
@@ -108,7 +106,6 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
 
       // Esperar a que cargue la tabla de clientes y se estabilice el DOM
       await page.waitForSelector('table', { timeout: 10000 });
-      await page.waitForTimeout(1000);
 
       const clientDni = Math.floor(10000000 + Math.random() * 90000000).toString();
       // Nombre empieza con "A " para que aparezca al inicio de la tabla (ordenada por cliNomCompleto desc/asc)
@@ -116,7 +113,6 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
 
       // Registrar nuevo cliente
       await page.click('button:has-text("Nuevo Cliente")');
-      await page.waitForTimeout(500); // Evitar race condition de useEffect del Modal
       await expect(page.locator('h3').first()).toHaveText('Agregar Cliente', { timeout: 5000 });
       await page.fill('#cliNumDoc', clientDni);
       await page.fill('#cliNomCompleto', clientName);
@@ -124,7 +120,8 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
       await page.fill('#cliFechaNac', '1985-05-15');
       await page.click('button:has-text("Guardar")');
       await expect(page.locator('h3:has-text("Cliente")')).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1500); // Esperar que la tabla se recargue y estabilice
+      await page.fill('input[placeholder="Buscar por nombre Completo o DNI"]', clientDni);
+      await expect(page.locator('tr').filter({ hasText: clientDni })).toBeVisible({ timeout: 10000 });
 
       // b) Seleccionar el cliente de la lista/tabla (está garantizado en la primera página por empezar con "A")
       const clientRow = page.locator('tr').filter({ hasText: clientDni }).first();
@@ -133,10 +130,10 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
       // c) Abrir el panel de detalles del cliente seleccionado
       await clientRow.locator('button[title="Ver detalle del cliente"]').click();
       await expect(page.locator('h2:has-text("Detalle del cliente")')).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(1000);
 
       // d) Acceder al formulario de registro de una "Nueva Receta"
       const registerBtn = page.locator('button:has-text("Registrar primera receta"), button:has-text("Registrar nueva receta")').first();
+      await expect(registerBtn).toBeVisible({ timeout: 5000 });
       await registerBtn.click();
       await expect(page.locator('h3:has-text("Nueva Receta")')).toBeVisible({ timeout: 5000 });
 
@@ -149,7 +146,6 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
       // Asegurar que hacemos click al botón Guardar del popup de optometra
       await page.locator('button').filter({ hasText: /^Guardar$/ }).click();
       await expect(page.locator('input[placeholder="Nombre"]')).not.toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(500);
 
       // e) Llenar los campos clínicos mandatorios de la receta (Esfera SPH y Cilindro CYL)
       await page.fill('input[name="receEsfeOD"]', '1.50');
@@ -162,7 +158,6 @@ test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Receta
 
       // El modal de receta debe cerrarse
       await expect(page.locator('h3:has-text("Nueva Receta")')).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1000);
 
       // g) Verificar mediante aserciones que la nueva receta aparezca asociada correctamente al cliente
       // dentro de su historial clínico visible en la pantalla (panel de detalles)
