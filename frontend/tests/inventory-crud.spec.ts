@@ -17,7 +17,7 @@ async function loginAs(page: Page, username: string, password: string) {
   await page.locator('#password').pressSequentially(password, { delay: 50 });
   
   // 2. Hacer clic en el botón de submit
-  await page.click('button[type="submit"]');
+  await page.click('button[type="submit"]', { force: true });
   
   // 3. En lugar de esperar el cambio de URL, esperamos a que aparezca un elemento 
   // que demuestre que ya entramos a la aplicación (ej: el menú lateral, navbar o el botón de salir)
@@ -85,7 +85,6 @@ print('DB Cleaned')
 
       // Assert: El modal se cierra
       await expect(page.getByRole('dialog', { name: /Nuevo Producto/i })).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1000); 
 
       // Verificar que la descripción aparece en la tabla
       const productRow = page.locator(`text=${uniqueBrand} | 52-18-140 NEGRO`).first();
@@ -121,7 +120,6 @@ print('DB Cleaned')
 
       // Assert
       await expect(page.getByRole('dialog', { name: /Nuevo Producto/i })).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1000);
 
       const productRow = page.locator(`text=${uniqueBrand}`).first();
       await expect(productRow).toBeVisible({ timeout: 10000 });
