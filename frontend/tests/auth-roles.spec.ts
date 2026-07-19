@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 const ENV = {
   VENDEDOR_USER: process.env.TEST_VENDEDOR_USER ?? 'vendedor1',
@@ -10,14 +11,6 @@ const ENV = {
   OPTOMETRA_USER: process.env.TEST_OPTOMETRA_USER ?? 'optometra1',
   OPTOMETRA_PASS: process.env.TEST_OPTOMETRA_PASS ?? 'Admin123!',
 };
-
-async function loginAs(page: any, username: string, password: string) {
-  await page.goto('/');
-  await page.fill('#username', username);
-  await page.fill('#password', password);
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 const DENIED = page => page.locator('h2:has-text("Acceso restringido")');
 

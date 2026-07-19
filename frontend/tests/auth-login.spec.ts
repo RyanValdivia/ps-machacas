@@ -1,16 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('E2E-AUTH: Autenticación - RegistraMe', () => {
 
   /** E2E-AUTH-01: Login exitoso */
   test('Debería loguearse exitosamente y redirigir al Dashboard @acceptance', async ({ page }) => {
-    // Arrange: Navegar al login e ingresar credenciales válidas
-    await page.goto('/');
-    await page.fill('#username', process.env.TEST_USER ?? 'admin');
-    await page.fill('#password', process.env.TEST_PASSWORD ?? 'admin123');
-
-    // Act: Enviar el formulario.
-    await page.click('button[type="submit"]');
+    // Arrange: Login con credenciales válidas
+    await loginAs(page, process.env.TEST_USER ?? 'admin', process.env.TEST_PASSWORD ?? 'admin123');
 
     // Assert: URL cambia a /dashboard y se muestra "Bienvenido"
     await expect(page).toHaveURL(/\/dashboard/);
