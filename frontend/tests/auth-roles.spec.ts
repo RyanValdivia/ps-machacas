@@ -14,6 +14,13 @@ const ENV = {
 
 const DENIED = page => page.locator('h2:has-text("Acceso restringido")');
 
+// E2E-AUTH-03A/B/C/D: Control de acceso por rol (RBAC)
+// 4 usuarios de distinto nivel (vendedor, gerente, logística,
+// optometra) navegando a las mismas 5 rutas. Cada uno debe ver bloqueadas
+// las rutas fuera de su nivel y acceso libre a las suyas.
+// Punto clave: gerente1 (nivel 0) es el único con acceso total — úsalo para
+// demostrar el "caso permisivo"; logistica1/optometra1 muestran el bloqueo
+// más estricto (solo 1 módulo propio).
 test.describe('E2E-AUTH: Roles y permisos - RegistraMe', () => {
 
   /** E2E-AUTH-03A: Bloqueo de rutas por nivel de acceso */

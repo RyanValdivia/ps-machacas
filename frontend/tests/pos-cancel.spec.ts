@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers/auth';
 
+// E2E-POS-07: Anulación de venta
+// Se crea una venta rápida de una "Luna" (S/50), luego se va al
+// listado de ventas, se abre "Gestionar venta" y se anula indicando motivo.
+// Punto clave: resaltar el flujo de doble confirmación (formulario con motivo
+// + SweetAlert de confirmación) antes de anular, y el mensaje final
+// "Venta anulada".
 test.describe.serial('Módulo POS - Anulación de Venta (IEEE §V.B)', () => {
 
   test.beforeEach(async ({ page }) => {

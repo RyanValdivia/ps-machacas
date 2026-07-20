@@ -1,7 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { loginAs, resetProductStock } from './helpers/auth';
 
-// Use serial so E2E-POS-01 opens the box for E2E-POS-02 and 03
+// E2E-POS-01/02/03: Flujo de ventas
+// POS-01: apertura de caja con BVA sobre el monto inicial (S/0 debería
+// fallar validación; S/100 abre la caja normal).
+// POS-02: venta de un producto con stock límite (1 unidad, reseteado vía API
+// antes del test para no depender del orden de los otros browsers en CI).
+// POS-03: venta con "Luna" personalizada (precio manual, sin producto de catálogo).
+// Corren en serie: POS-01 abre la caja que usan POS-02 y POS-03.
 test.describe.serial('Módulo POS - Flujo de Ventas (IEEE §V.B)', () => {
 
   test.beforeEach(async ({ page }) => {

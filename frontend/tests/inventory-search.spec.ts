@@ -18,6 +18,13 @@ async function loginAs(page: Page, username: string, password: string) {
   await page.waitForSelector('nav, button:has-text("Cerrar"), [href*="logout"]', { timeout: 10000 });
 }
 
+// E2E-INV-02: Búsqueda y filtrado de productos
+// Buscar "PEGASUS" por texto libre, luego aplicar filtro
+// avanzado por material "Metal" y confirmar que el resultado sigue siendo
+// coherente (PEGASUS es metálica; una montura de Acetato como RAYBAN no
+// debe aparecer al combinar ambos filtros).
+// Punto clave: demuestra que búsqueda por texto y filtro por atributo
+// funcionan combinados, no solo por separado.
 test.describe('E2E-INV-02: Búsqueda y filtrado de productos', () => {
   
   test('Debería buscar PEGASUS y filtrar por material Metal @acceptance', async ({ page }) => {

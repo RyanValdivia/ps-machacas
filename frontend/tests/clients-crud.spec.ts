@@ -3,6 +3,15 @@ import { loginAs } from './helpers/auth';
 import path from 'path';
 import fs from 'fs';
 
+// E2E-CLI-01/02: Módulo Clínico (Clientes y Recetas)
+//  - CLI-01: registrar un cliente con DNI único, luego intentar registrar
+//    OTRO cliente con el MISMO DNI → debe rechazarse con mensaje de error
+//    (constraint de unicidad a nivel de negocio, no solo BD).
+//  - CLI-02: registrar cliente, entrar a su detalle, crear un optometrista
+//    al vuelo (si no hay ninguno) y registrar una receta óptica con SPH/CYL
+//    de ambos ojos, verificando que los valores queden en su historial.
+// Punto clave: ambos casos generan un screenshot de evidencia en
+// ../test-results/ — útil para mostrar el resultado final sin repetir el flujo.
 test.describe('Ruta Crítica 4: Módulo Clínico - Gestión de Clientes y Recetas', () => {
 
   const testResultsDir = path.resolve(process.cwd(), '../test-results');

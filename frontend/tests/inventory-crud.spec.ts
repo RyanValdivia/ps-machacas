@@ -25,6 +25,14 @@ async function loginAs(page: Page, username: string, password: string) {
   await page.waitForSelector('nav, button:has-text("Cerrar"), [href*="logout"]', { timeout: 10000 });
 }
 
+// E2E-INV-01/04: Catálogo e Inventario (alta de productos y proveedores)
+//  - INV-01: alta de montura con stock normal, y caso límite de Análisis de
+//    Valores Límite (BVA) con stock = 0 (debe permitirse, no es error).
+//  - INV-04: alta de proveedor válido, y caso BVA de RUC inválido (menos de
+//    11 dígitos) → debe mostrar error y mantener el modal abierto.
+// Punto clave: el beforeAll limpia datos de pruebas previas (marcas
+// BVA-TEST*/RAYBAN* y proveedor "Óptica Los Andes") para que la demo sea
+// repetible sin acumular basura en la BD.
 test.describe('E2E-INV: Catálogo e Inventario', () => {
 
   test.beforeAll(async () => {

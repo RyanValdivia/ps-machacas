@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers/auth';
 
+// E2E-POS-06: Cierre de caja con balance
+// Abre caja (si hace falta), procesa una venta rápida para tener movimiento,
+// y va a cerrar caja. Caso BVA: monto declarado = 0 debe dejar el botón
+// "Cerrar Caja" deshabilitado; con monto real (150.00) sí permite cerrar.
+// Al cerrar, redirige a apertura de caja de la siguiente sesión.
 test.describe.serial('Módulo POS - Cierre de Caja (IEEE §V.B)', () => {
 
   test.beforeEach(async ({ page }) => {

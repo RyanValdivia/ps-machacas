@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers/auth';
 
+// E2E-AUTH-01/02: Login
+// Caso feliz (credenciales válidas → dashboard) y caso negativo
+// (credenciales inválidas → mensaje de error en rojo, sin redirigir).
+// Punto clave: resaltar que el error se renderiza en la propia vista de login,
+// no navega ni expone info de si el usuario existe o no.
 test.describe('E2E-AUTH: Autenticación - RegistraMe', () => {
 
   /** E2E-AUTH-01: Login exitoso */

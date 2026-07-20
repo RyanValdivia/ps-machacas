@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers/auth';
 
+// E2E-POS-04/05: Pagos parciales
+// POS-04: venta de S/200 con adelanto de S/100 → queda en estado PARCIAL.
+// POS-05: se filtra el listado de ventas por estado PARCIAL, se abre la
+// venta creada en POS-04 y se registra el pago del saldo restante (S/100).
+// Corren en serie porque POS-05 depende de la venta parcial dejada por POS-04.
 test.describe.serial('Módulo POS - Pagos Parciales (IEEE §V.B)', () => {
 
   test.beforeEach(async ({ page }) => {

@@ -50,6 +50,16 @@ async function ensureCashSessionOpen(page: Page) {
   }
 }
 
+// E2E-INV-03: Validación de stock (Análisis de Valores Límite)
+// 3 casos BVA sobre el mismo producto con stock forzado a 1:
+//  - Caso 1: agregar exactamente 1 unidad → venta se procesa OK (límite superior válido).
+//  - Caso 2: intentar agregar una 2da unidad (stock+1) → debe bloquearse con
+//    advertencia visible, el carrito se queda en 1.
+//  - Caso 3: el botón de decremento (−) debe estar deshabilitado al llegar a 1,
+//    impidiendo bajar a 0 unidades desde el carrito.
+// Punto clave: tests corren en modo serial y cada uno resetea stock vía API
+// (resetProductStock) antes de arrancar — así es reproducible aunque los 3
+// navegadores (chromium/firefox/webkit) compartan la misma BD en CI.
 test.describe('E2E-INV-03: Validación de stock insuficiente (Alta prioridad 🔴)', () => {
   test.describe.configure({ mode: 'serial' });
 

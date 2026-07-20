@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers/auth';
 
+// E2E-AUTH-04: Persistencia de sesión
+// Login exitoso, luego recargar la página (F5) y verificar que
+// NO vuelve a pedir login (sesión persistida, típicamente en localStorage/token).
+// Punto clave: simula cerrar y reabrir el navegador sin perder la sesión.
 test.describe('E2E-AUTH: Persistencia de sesión - RegistraMe', () => {
 
   /** E2E-AUTH-04: Persistencia de sesión */
