@@ -170,7 +170,7 @@ class SoakTestUser(HttpUser):
         self._login()
 
     def _login(self):
-        creds = _next_user_credentials()
+        creds = _next_credentials()
         self.token = None
         self.refresh_token = None
         self.username = creds["usuNom"]
