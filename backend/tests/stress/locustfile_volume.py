@@ -64,6 +64,21 @@ from pathlib import Path
 from locust import HttpUser, task, between, events, tag
 from locust.exception import StopUser
 
+# NF-VOL-01: prueba de volumen (no de concurrencia extrema).
+# Patrón de carga: 50 usuarios (--users 50) moderados durante 3 minutos,
+# pero corriendo contra un catálogo pre-cargado con un GRAN volumen de
+# datos (100,000 productos vía seed_masivo.py --count 100000, comparado
+# contra una línea base de ~1000). El foco no es cuánta carga aguanta el
+# server, sino cómo se degrada la BD/query planner cuando la tabla es
+# enorme: búsqueda por texto, filtros exactos, filtros combinados,
+# paginación profunda (page=50/100, notoriamente lenta con OFFSET en
+# PostgreSQL) y ordenamientos, cada uno en su propia tarea con distinto
+# peso (ver comentarios de cada @task más abajo).
+# Éxito esperado: P95 <= 3000ms contra el catálogo de 100k, y que la
+# diferencia frente al reporte baseline (~1000 productos) no supere el
+# 50% del valor base (ver hook on_quitting). Una degradación mayor indica
+# que faltan índices o que alguna consulta no escala con el volumen.
+
 _env_file = Path(__file__).resolve().parents[2] / ".env"
 if not _env_file.exists():
     _env_file = Path(__file__).resolve().parents[2] / ".env.example"

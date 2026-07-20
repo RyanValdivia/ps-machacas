@@ -3,6 +3,14 @@ from unittest.mock import patch, MagicMock
 from decimal import Decimal
 
 
+# Tests de ImpresoraTermica (sales/printer.py): generación del ticket ESC/POS para
+# la impresora térmica de 80mm. Cubre _generar_ticket con distintas combinaciones de
+# datos (mínimos, completos, descuento, adelanto parcial/completo, observaciones,
+# productos multilínea para lunas), el logo (con/sin OpticalCenter en BD, conversión
+# de imagen a ESC/POS), el envío a la impresora vía subprocess (mockeado) y el manejo
+# de errores en imprimir_ticket_venta. Cada test ya trae su propio comentario "# TEST:"
+# inline describiendo el caso puntual.
+
 @pytest.fixture
 def printer():
     from sales.printer import ImpresoraTermica

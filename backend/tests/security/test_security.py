@@ -12,6 +12,20 @@ from users.models import Role
 User = get_user_model()
 
 
+# Suite de tests no funcionales de seguridad (NFSEC) para la API en su conjunto.
+# NFSEC-01/02: control de acceso - todo endpoint protegido debe rechazar peticiones
+# GET/POST/PUT/PATCH/DELETE sin token JWT (401), verificado sobre una lista amplia
+# de endpoints (products, sales, clients, user, cash, suppliers, categories,
+# opticalcenter).
+# NFSEC-03/04: autorización por rol - un VENDEDOR no debe poder listar usuarios ni
+# cajeros (endpoints exclusivos de GERENTE), debe recibir 403.
+# NFSEC-05: un token JWT ya expirado (fabricado a mano con exp en el pasado) debe
+# ser rechazado con 401.
+# NFSEC-06/07: inyección SQL vía el parámetro de búsqueda (?search=) en productos
+# y ventas; el sistema no debe romperse (solo 200 o 400 son aceptables) y si
+# responde 200 los datos deben seguir teniendo forma válida - confirma que el ORM
+# parametriza las consultas en vez de concatenar el input crudo.
+
 @pytest.fixture
 def api_client():
     return APIClient()

@@ -44,6 +44,20 @@ from pathlib import Path
 from locust import HttpUser, task, between, events, tag
 from locust.exception import StopUser
 
+# NF-STRESS-02: búsquedas masivas de inventario.
+# Patrón de carga: 100 usuarios concurrentes (--users 100) sostenidos por
+# 3 minutos, cada uno logueado (JWT) y ejecutando GET /api/products/ con
+# combinaciones aleatorias de search/material/paginación/ordering (ver
+# _build_search_url). Requiere >= 1000 productos precargados con
+# seed_masivo.py --count 1000 para que las búsquedas sean representativas.
+# Único User class (InventorySearchUser) con 3 tareas de distinto peso:
+#   - buscar_productos_variado (peso 5): tarea principal, mezcla de filtros.
+#   - buscar_por_marca_conocida (peso 3): búsqueda dirigida por marca.
+#   - listar_todos_paginado (peso 1): listado de catálogo paginado.
+# Éxito esperado (ver hook on_quitting): P95 <= 2000ms y 0 timeouts/fallos.
+# Un P95 alto o failures > 0 indica cuello de botella en el endpoint de
+# búsqueda (índices, query planner) bajo concurrencia real.
+
 # ---------------------------------------------------------------------------
 # Cargar .env si existe
 # ---------------------------------------------------------------------------

@@ -60,6 +60,17 @@ from pathlib import Path
 from locust import HttpUser, task, between, events, tag
 from locust.exception import StopUser
 
+# Este archivo agrupa TRES escenarios de carga distintos sobre el flujo de
+# ventas (POS), seleccionables con --tags al lanzar locust (ver
+# _parse_active_tags / _user_class_active, que activan solo la User class
+# del escenario pedido):
+#   - NF-STRESS-01: carga concurrente normal de ventas (throughput).
+#   - NF-STRESS-03: condición de carrera sobre un único producto (concurrencia).
+#   - NF-STRESS-05: lectura+escritura simultánea sobre el dashboard.
+# Cada escenario define su propia User class con host/users/wait_time y
+# criterios de éxito propios (documentados en el docstring de cada clase
+# y verificados en los hooks de eventos al final del archivo).
+
 _env_file = Path(__file__).resolve().parents[2] / ".env"
 if not _env_file.exists():
     _env_file = Path(__file__).resolve().parents[2] / ".env.example"

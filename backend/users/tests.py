@@ -7,6 +7,13 @@ from users.models import Role
 User = get_user_model()
 
 
+# Tests del módulo users: modelos Role y User (custom user model con usuNom como
+# USERNAME_FIELD), serializers, permisos por nivel de rol (Nivel1-4Permission) y las
+# vistas de autenticación/gestión de usuarios en /api/user/ (login, logout, alta,
+# listar, obtener, actualizar, cambiar contraseña, eliminar, JWT obtain/refresh con
+# claims custom). Cada vista de gestión tiene su caso de acceso denegado por rol o
+# por falta de autenticación.
+
 # ────────────────────────── Fixtures ──────────────────────────
 
 @pytest.fixture
@@ -117,6 +124,9 @@ class TestRoleModel:
 
 # ────────────────────────── User Model Tests ──────────────────────────
 
+# Creación de usuario vía el custom manager: usuNom/usuEmail obligatorios,
+# superusuario, normalización de dominio de email a minúsculas, relación M2M
+# con roles.
 @pytest.mark.django_db
 class TestUserModel:
     def test_create_user(self, db):
@@ -187,6 +197,9 @@ class TestUserModel:
 
 # ────────────────────────── UserSerializer Tests ──────────────────────────
 
+# usuContra es write_only (no debe aparecer en los datos serializados), creación
+# y actualización vía serializer (incluye cambio de contraseña), y el caso de
+# asignación de roles al marcar un usuario como is_staff.
 @pytest.mark.django_db
 class TestUserSerializer:
     def test_serialize_user(self, gerente, gerente_role):
@@ -271,6 +284,10 @@ class TestCurrentUserSerializer:
 
 # ────────────────────────── Permissions Tests ──────────────────────────
 
+# Llama directamente a Nivel1Permission..Nivel4Permission con un request mockeado
+# (sin pasar por una vista real). Ojo: rolNivel=0 (gerente) no satisface
+# Nivel1Permission en estos tests - el permiso exige coincidencia exacta de nivel,
+# no "gerente = acceso total". También cubre usuario sin roles y no autenticado.
 @pytest.mark.django_db
 class TestPermissions:
     def test_nivel1_permission_gerente_denied(self, gerente, gerente_role):
@@ -340,6 +357,9 @@ class TestPermissions:
 
 # ────────────────────────── Login/Logout Direct Function Tests ──────────────────────────
 
+# Llama directamente a las funciones de vista login_user/logout_user (con
+# RequestFactory, sin pasar por la URL) para cubrir login por sesión con
+# credenciales válidas/inválidas.
 @pytest.mark.django_db
 class TestLoginLogoutFunctions:
     def test_login_user_view_success(self, gerente):
@@ -385,6 +405,10 @@ class TestLoginLogoutFunctions:
 
 # ────────────────────────── New User View Tests ──────────────────────────
 
+# Alta de usuario en /api/user/new/: el primer usuario del sistema se puede crear
+# sin autenticación (bootstrap), pero una vez que ya existe algún usuario la
+# creación sin auth es rechazada (403). También valida datos inválidos y username
+# duplicado.
 @pytest.mark.django_db
 class TestNewUserView:
     def test_create_first_user_unauthenticated(self, api_client, db):
@@ -551,6 +575,8 @@ class TestCurrentUserView:
 
 # ────────────────────────── List Cashier Users View Tests ──────────────────────────
 
+# /api/user/list/cashier/: solo gerente puede listar cajeros; otro rol (vendedor)
+# recibe 403.
 @pytest.mark.django_db
 class TestListCashierUsersView:
     def test_list_cashiers_as_gerente(self, authenticated_client, cajero):
@@ -566,6 +592,8 @@ class TestListCashierUsersView:
 
 # ────────────────────────── List Seller Users View Tests ──────────────────────────
 
+# /api/user/sellers/: retorna solo usuarios con rol VENDEDOR; verifica que la
+# lista esté filtrada por rol, no solo que responda 200.
 @pytest.mark.django_db
 class TestListSellerUsersView:
     def test_list_sellers(self, api_client, vendedor):
@@ -583,6 +611,9 @@ class TestListSellerUsersView:
 
 # ────────────────────────── Token Serializer Tests ──────────────────────────
 
+# Obtención y refresco de JWT (/api/user/token/, /token/refresh/): credenciales
+# válidas/inválidas/faltantes, y que el access token incluya claims custom
+# (usuNom, usuCod) decodificando el JWT sin verificar firma.
 @pytest.mark.django_db
 class TestTokenSerializer:
     def test_token_obtain_success(self, api_client, gerente):
@@ -633,6 +664,9 @@ class TestTokenSerializer:
 
 # ────────────────────────── UserViewSet Tests ──────────────────────────
 
+# Placeholder: no hace ninguna aserción real (pass). El listado de usuarios ya se
+# prueba en TestListUsersView contra /api/user/, que es el endpoint efectivamente
+# usado; este test solo deja constancia de que existe una ruta /api/user/users/.
 @pytest.mark.django_db
 class TestUserViewSet:
     def test_list_via_viewset(self, authenticated_client, gerente):

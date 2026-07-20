@@ -58,6 +58,22 @@ from products.models import Product
 from categories.models import ProductCategory
 from suppliers.models import Supplier
 
+# Script de seeding (no es un Locust file) — genera datos masivos que las
+# pruebas de carga necesitan como precondición, en vez de correr contra
+# una BD casi vacía:
+#   - `--count N`: crea N productos (modelo Product, categoría fija
+#     catproCode='AC' = Accesorio, con un Supplier existente) vía
+#     bulk_create en lotes de 500. Se usa con --count 1000 para
+#     NF-STRESS-02 (búsquedas de inventario) y --count 100000 para
+#     NF-VOL-01 (prueba de volumen), simulando un catálogo real grande.
+#   - `--race-condition`: crea UN producto puntual con stock=1, insumo de
+#     NF-STRESS-03 (10 usuarios compitiendo por el mismo producto).
+#   - `--verificar-stock`: consulta el stock final de ese producto de
+#     race condition tras correr la prueba, para confirmar que solo se
+#     descontó una unidad.
+# bulk_create no dispara Product.save(), así que prodDescr se arma a mano
+# y prodCode queda en NULL (no afecta las búsquedas usadas en los tests).
+
 # ---------------------------------------------------------------------------
 # Datos de variedad para las pruebas
 # ---------------------------------------------------------------------------

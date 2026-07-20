@@ -56,6 +56,21 @@ from pathlib import Path
 from locust import HttpUser, task, between, events, tag
 from locust.exception import StopUser
 
+# NF-SOAK-01: prueba de resistencia (soak test).
+# Patrón de carga: pocos usuarios (5, --users 5) pero SOSTENIDOS por mucho
+# tiempo (30 minutos, --run-time 30m) — el objetivo no es throughput alto
+# sino detectar degradación progresiva (memory leaks, conexiones BD que no
+# se liberan, latencia que sube con el tiempo). Cada usuario repite un
+# ciclo realista: login -> búsqueda -> venta -> dashboard -> ... usando
+# refresh token (no re-login) para no maquillar el costo real de sesiones
+# largas. Las respuestas se agrupan en ventanas de 5 min (_record_response)
+# para comparar P95 de la primera ventana vs la última.
+# Éxito esperado: sin timeouts, y la degradación de P95 entre ventanas
+# < 20% (ver hook on_quitting). Un resultado "malo" real es P95 subiendo
+# ventana a ventana o memoria creciendo sin techo (monitoreado aparte con
+# docker stats) — eso sí es indicio de leak; una latencia estable, aunque
+# alta, no lo es.
+
 _env_file = Path(__file__).resolve().parents[2] / ".env"
 if not _env_file.exists():
     _env_file = Path(__file__).resolve().parents[2] / ".env.example"

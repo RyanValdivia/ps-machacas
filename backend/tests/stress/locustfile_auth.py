@@ -32,6 +32,17 @@ TEST_USERS = json.loads(test_users_raw)
 user_pool = itertools.cycle(TEST_USERS)
 
 
+# NF-STRESS-04: pico de 100 logins simultáneos.
+# Patrón de carga: ráfaga de autenticaciones puras — la única tarea es
+# POST /api/user/token/ en loop, con wait_time muy corto (0.1-0.3s) para
+# simular muchos usuarios logueándose casi al mismo tiempo (pico, no
+# carga sostenida). Cada request usa la siguiente credencial del pool
+# TEST_USERS_JSON (rotado con itertools.cycle, sin repetir seguido).
+# Éxito esperado: HTTP 200 con "access" y "refresh" en el body para cada
+# login. Un resultado "malo" real es login != 200 o 200 sin tokens bajo
+# el pico — señal de que el endpoint de auth (o la BD) no aguanta 100
+# logins concurrentes. Cantidad de usuarios/host se definen al lanzar
+# `locust` (no están hardcodeados en este archivo).
 class StressAuthUser(HttpUser):
     wait_time = between(0.1, 0.3)
 

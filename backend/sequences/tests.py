@@ -2,6 +2,13 @@ import pytest
 from django.db import transaction
 from sequences.models import ProductSequence
 
+# Tests de ProductSequence: contador atómico usado para generar códigos correlativos
+# por tipo (sequence_type). Cubre: creación y __str__, unique constraint de
+# sequence_type, get_next_value (crea la secuencia si no existe, incrementa si ya
+# existe, y llamadas sucesivas devuelven valores consecutivos), reset_sequence
+# (a 0 o a un valor arbitrario), valores por defecto, ordenamiento alfabético por
+# sequence_type y actualización automática de updated_at.
+
 
 @pytest.mark.django_db
 def test_create_sequence():

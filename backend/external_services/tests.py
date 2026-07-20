@@ -6,6 +6,16 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# Tests del proxy a servicios externos de consulta de DNI/RUC (RENIEC/SUNAT).
+# requests.get se mockea en casi todos los casos para simular las respuestas del
+# proveedor externo sin red real; se cubre: éxito, validación de formato de entrada,
+# 404 (no encontrado), 429 (rate limit), errores 5xx no mapeados, timeout (-> 504) y
+# connection error (-> 503), y excepciones genéricas (-> 500/502 según endpoint).
+# La clase TestProxyResilienceIntegration (marcada @pytest.mark.integration, INT-13)
+# es la única prueba de resiliencia real ante una dependencia externa: simula que
+# RENIEC no responde (timeout de red) y valida que el backend no se cuelgue, sino
+# que responda 504 de forma controlada.
+
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado para servicios externos"""

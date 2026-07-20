@@ -2,6 +2,12 @@ import pytest
 from clients.serializers import ClientSerializer, RecipeSerializer
 from clients.models import Client, Optometrist
 
+# Tests de ClientSerializer y RecipeSerializer.
+# Cubre: que el serializer de Client respete la lógica de negocio del modelo (mayúsculas
+# al guardar, y que se refleje tanto en el objeto guardado como en la salida serializada),
+# y que RecipeSerializer acepte y persista correctamente el payload mínimo (solo las
+# relaciones obligatorias cliente/optómetra).
+
 
 @pytest.mark.django_db
 def test_client_serializer_creates_and_applies_model_save_behavior():

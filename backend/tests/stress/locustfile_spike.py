@@ -50,6 +50,21 @@ from pathlib import Path
 from locust import HttpUser, task, between, events, tag
 from locust.exception import StopUser
 
+# Spike test: aumento BRUSCO de carga (0 a 200 usuarios en ~30s, spawn-rate
+# ~7 users/s) que luego se mantiene en el pico (200 usuarios) durante ~5
+# minutos. A diferencia del soak test, aquí interesa la velocidad del
+# aumento y si el sistema se recupera al bajar la carga, no la duración.
+# _classify_phase() separa cada respuesta en fase "ramping" (primeros 45s,
+# mientras suben los usuarios) o "peak" (resto), para poder comparar
+# latencia/errores de una fase contra la otra en el reporte final.
+# Único User class (SpikeUser) con 3 tareas mezcladas: búsquedas (peso 5),
+# ventas (peso 3), dashboard (peso 2).
+# Éxito esperado: el sistema no se cae (sigue respondiendo, aunque con
+# errores), los errores durante el pico son "graceful" (400/429/503, no
+# conexiones rechazadas), Error Rate en pico < 20% y P95 en pico < 8s (ver
+# hook on_quitting). Errores masivos o timeouts durante el pico indican
+# que el sistema no soporta el aumento brusco de carga.
+
 _env_file = Path(__file__).resolve().parents[2] / ".env"
 if not _env_file.exists():
     _env_file = Path(__file__).resolve().parents[2] / ".env.example"

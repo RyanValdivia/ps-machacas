@@ -2,6 +2,13 @@ import pytest
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 
+# Tests del feature de Caja (Cash) y Apertura de Caja (CashOpening).
+# Cubre: modelos (validaciones de clean(), constraint unique en cajNom, ciclo de vida
+# de una apertura: crear, cerrar con cálculo de diferencia/monto esperado, anular, y
+# reglas de "una apertura activa por caja/usuario"), serializers (campos expuestos y
+# validación de datos), viewsets (CRUD completo + acciones custom: close, open,
+# session_sales, by-cash) incluyendo control de acceso por rol, y resolución de urls.
+
 
 @pytest.mark.django_db
 class TestCashModel:
@@ -78,6 +85,9 @@ class TestCashModel:
 
 @pytest.mark.django_db
 class TestCashOpeningModel:
+    # Ciclo de vida de una apertura: creación, cierre (cerrar_caja calcula diferencia
+    # y monto esperado), anulación, y reglas que impiden duplicar apertura activa
+    # en la misma caja o el mismo usuario.
     # TEST: crear apertura con todos los campos
     def test_create_opening(self):
         from users.models import User
@@ -341,6 +351,8 @@ class TestCashSerializers:
 
 @pytest.mark.django_db
 class TestCashViewSet:
+    # CRUD del endpoint /api/cash/. Incluye caso de permisos: un usuario sin rol
+    # asignado ve la lista vacía (test_list_sin_rol).
     # TEST: list sin autenticacion retorna 401
     def test_list_unauthenticated(self, api_client):
         resp = api_client.get("/api/cash/")
@@ -431,6 +443,9 @@ class TestCashViewSet:
 
 @pytest.mark.django_db
 class TestCashOpeningViewSet:
+    # CRUD de /api/cash/opening/ más las acciones custom: close (cerrar caja),
+    # open (apertura actual del usuario), session_sales (ventas de la sesión
+    # abierta) y by-cash (aperturas de una caja puntual).
     # TEST: list sin autenticacion retorna 401
     def test_list_unauthenticated(self, api_client):
         resp = api_client.get("/api/cash/opening/")

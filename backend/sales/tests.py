@@ -17,6 +17,14 @@ from sales.models import Venta, VentaDetalle, Comprobante, ComprobanteDetalle
 User = get_user_model()
 
 
+# Tests del módulo sales: modelos Venta, VentaDetalle y Comprobante, el dashboard de
+# estadísticas y los ViewSets/serializers expuestos en /api/sales/. Cubre la lógica de
+# negocio de una venta completa: cálculo de totales, transición de estados de pago
+# (PENDIENTE/PARCIAL/PAGADO/ANULADO) y de recojo (PENDIENTE/LISTO/ENTREGADO), anulación
+# con devolución de stock, registro de pagos parciales, generación de comprobante con
+# correlativo automático (serie NV01), y estadísticas agregadas del dashboard por
+# periodo (día/semana/mes/personalizado).
+
 # ────────────────────────── Fixtures ──────────────────────────
 
 @pytest.fixture
@@ -146,6 +154,9 @@ def auth_client(api_client, user):
 
 # ────────────────────────── Venta Model Tests ──────────────────────────
 
+# Lógica del modelo Venta: cálculo de totales, transiciones de estado de pago y de
+# recojo, anulación (incluye casos que deben fallar: venta ya anulada, ya entregada),
+# y registro de pagos (incluye validaciones: monto cero, monto que excede el saldo).
 @pytest.mark.django_db
 class TestVentaModel:
     def test_create_venta(self, user, client_obj, cash_opening):
@@ -336,6 +347,9 @@ class TestVentaModel:
 
 # ────────────────────────── VentaDetalle Model Tests ──────────────────────────
 
+# Modelo VentaDetalle: copiado de datos del producto al detalle, cálculo de subtotal,
+# devolución de stock al anular un detalle, y armado de descripción para lunas
+# personalizadas (con y sin datos de material/tipo).
 @pytest.mark.django_db
 class TestVentaDetalleModel:
     def test_create_detalle(self, venta, product):
@@ -400,6 +414,8 @@ class TestVentaDetalleModel:
 
 # ────────────────────────── Comprobante Model Tests ──────────────────────────
 
+# Modelo Comprobante: generación de serie/correlativo automático (NV01), copiado de
+# datos de la venta (cliente, total) y relación con los detalles de la venta.
 @pytest.mark.django_db
 class TestComprobanteModel:
     def test_create_comprobante(self, venta, venta_detalle):
@@ -463,6 +479,10 @@ class TestComprobanteModel:
 
 # ────────────────────────── Dashboard (Reportes) View Tests ──────────────────────────
 
+# Endpoint estadisticas_dashboard/: valida la estructura de la respuesta (resumen
+# general, proveedores, top productos, ventas por día/vendedor/caja, lunas, ventas
+# pendientes/listas) y el filtrado por periodo (dia/semana/mes/personalizado), más
+# el caso sin autenticar (401).
 @pytest.mark.django_db
 class TestEstadisticasDashboard:
     def test_dashboard_default_period(self, auth_client, venta, venta_detalle):
@@ -615,6 +635,9 @@ class TestEstadisticasDashboard:
 
 # ────────────────────────── VentaViewSet Tests ──────────────────────────
 
+# CRUD y acciones del endpoint /api/sales/ventas/: creación de venta con detalle y
+# cliente (incluye alta de cliente nuevo y venta con cliente genérico), anular,
+# registrar_pago, marcar_listo/marcar_entregado, y obtener el comprobante asociado.
 @pytest.mark.django_db
 class TestVentaViewSet:
     def test_list_ventas(self, auth_client, venta):
@@ -772,6 +795,8 @@ class TestVentaViewSet:
 
 # ────────────────────────── VentaDetalleViewSet Tests ──────────────────────────
 
+# Endpoint /api/sales/ventas-detalle/: listar, obtener y anular un detalle de venta
+# individual (incluye el caso de intentar anular uno ya anulado, debe dar 400).
 @pytest.mark.django_db
 class TestVentaDetalleViewSet:
     def test_list_detalles(self, auth_client, venta_detalle):
@@ -795,6 +820,10 @@ class TestVentaDetalleViewSet:
 
 # ────────────────────────── Serializer Tests ──────────────────────────
 
+# Serializers de venta (list/detail/pago/create/update) y de comprobante/detalle:
+# campos expuestos y validaciones básicas. Nota: los métodos de las dos secciones
+# "ADDITIONAL TESTS" de más abajo quedaron indentados dentro de esta misma clase
+# aunque cubren dashboard, comprobante y anulación de detalle, no solo serializers.
 @pytest.mark.django_db
 class TestVentaSerializers:
     def test_venta_list_serializer(self, venta, venta_detalle):

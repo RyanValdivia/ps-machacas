@@ -17,6 +17,14 @@ from suppliers.models import Supplier
 from categories.models import ProductCategory
 
 
+# Tests del módulo products: modelo Product (monturas y accesorios), modelos de lunas
+# (LunaMaterial, LunaTipo, LunaCaracteristica, LunaConfiguracion), sus serializers y los
+# ViewSets/acciones expuestos en /api/products/ y /api/lunas/. Cubre validaciones de
+# modelo (full_clean: negativos, campos requeridos según montura/accesorio), generación
+# automática de código/descripción, mayúsculas en marca, cálculos de margen/ganancia/
+# valor de stock, permisos por rol (logística/gerente) y casos sueltos de manejo de
+# errores en update_stock y en la búsqueda/cálculo de precio de configuración de lunas.
+
 @pytest.fixture
 def logistica_role(db):
     """Rol Nivel 3 (Logística)"""
@@ -150,6 +158,9 @@ def accesorio_data(supplier, categoria_accesorio):
 
 # ==================== PRODUCT MODEL TESTS ====================
 
+# Validaciones de creación de Product (montura vs accesorio): campos requeridos,
+# valores negativos, generación de código/descripción, mayúsculas en marca y
+# cálculos de margen/ganancia/valor de stock.
 class TestProductModel:
     """Tests para el modelo Product"""
 
@@ -353,6 +364,8 @@ class TestProductModel:
 
 # ==================== LUNA MODEL TESTS ====================
 
+# Modelos de catálogo de lunas: creación básica de material/tipo/característica,
+# unique_together material-tipo en LunaConfiguracion y precio base negativo inválido.
 class TestLunaModels:
     """Tests para modelos de lunas"""
 
@@ -434,6 +447,8 @@ class TestLunaModels:
 
 # ==================== SERIALIZER TESTS ====================
 
+# Campos expuestos por ProductListSerializer/ProductDetailSerializer y por los
+# serializers de lunas, más validación básica de ProductCreateUpdateSerializer.
 class TestProductSerializers:
     """Tests para serializers de productos"""
 
@@ -518,6 +533,8 @@ class TestProductSerializers:
 
 # ==================== VIEW TESTS ====================
 
+# CRUD del endpoint /api/products/: auth requerida (401 sin token), listar,
+# buscar por código/marca, obtener, crear, actualizar y eliminar.
 class TestProductViewSet:
     """Tests para ProductViewSet"""
 
@@ -606,6 +623,8 @@ class TestProductViewSet:
         assert response.status_code == 204
 
 
+# Acciones personalizadas: monturas/accesorios (filtrado), stock_bajo (bajo mínimo),
+# estadisticas (métricas agregadas) y ajustar_stock.
 class TestProductActions:
     """Tests para acciones personalizadas de ProductViewSet"""
 
@@ -662,6 +681,8 @@ class TestProductActions:
         assert response.data['prodStock'] == 20
 
 
+# Endpoints CRUD de catálogos de lunas: materiales, tipos, características y
+# configuración (combinación material-tipo con precio base).
 class TestLunaViewSets:
     """Tests para ViewSets de lunas"""
 
@@ -747,6 +768,10 @@ class TestProductPermissions:
 
 
 # ==================== ADDITIONAL TESTS FOR COVERAGE ====================
+# Casos de error del endpoint update_stock/ (cantidad no numérica, tipo de
+# movimiento inválido, stock insuficiente en salida) y de los endpoints de
+# búsqueda/cálculo de precio de configuración de lunas (parámetros faltantes,
+# configuración no encontrada, material faltante).
 
 @pytest.mark.django_db
 def test_update_stock_invalid_quantity(logistica_client, categoria_montura, supplier):

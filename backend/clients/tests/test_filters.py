@@ -4,6 +4,13 @@ from datetime import timedelta
 from clients.models import Client
 from clients.filters import ClientFilter
 
+# Tests de ClientFilter (django-filter) para el endpoint de clientes.
+# Cubre: filtro directo por cliTipoDoc (DNI/RUC), filtros calculados edad_min/edad_max
+# (derivan la fecha de nacimiento límite a partir de la edad y comparan contra
+# cliFechaNac), y el manejo defensivo de filter_edad_min/filter_edad_max cuando el
+# valor recibido es no numérico, vacío o None: en esos casos el queryset debe
+# devolverse sin alterar.
+
 
 @pytest.mark.django_db
 def test_cliTipoDoc_filter():

@@ -3,6 +3,11 @@ from django.utils import timezone
 from datetime import timedelta
 from clients.models import Client, Optometrist, Recipe
 
+# Tests de modelos del app clients: Client, Optometrist y Recipe.
+# Cubre: normalización de cliNomCompleto a mayúsculas en Client.save() y su __str__,
+# __str__ de Optometrist (nombre + apellido), y creación de Recipe con sus relaciones
+# obligatorias (cliente, optómetra) validando su __str__.
+
 
 @pytest.mark.django_db
 def test_client_save_uppercase_and_str():

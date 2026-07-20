@@ -12,6 +12,18 @@ from sales.models import Venta
 
 User = get_user_model()
 
+# Tests de integración (marca @pytest.mark.integration): ejercitan flujos completos a
+# través de varias apps (sales, products, cash, users) en vez de unidades aisladas.
+# INT-01 a 04: venta real contra stock y caja (descuento de stock, rollback si no
+# alcanza, actualización de saldo/contador de la sesión de caja, rechazo de pago sin
+# caja abierta).
+# INT-05 a 10: autenticación JWT de punta a punta (login -> token -> endpoint
+# protegido) y los proxies externos DNI/RUC (requieren auth, validan el parámetro).
+# INT-11 y 12: inyección de fallas en la frontera Frontend -> API de ventas (Lab 08):
+# Caso 1 sintáctico (tipo de dato inválido) y Caso 2 semántico (monto válido pero
+# fuera de las reglas de negocio). El Caso 3 de resiliencia está en
+# external_services/tests.py.
+
 @pytest.fixture
 def manager_role(db):
     return Role.objects.create(rolNom="GERENTE", rolDes="Gerente", rolEstado="ACTIVO", rolNivel=0)
@@ -70,6 +82,9 @@ def cash_session(cash_register, test_user):
 
 @pytest.mark.django_db
 @pytest.mark.integration
+# Venta real de punta a punta contra stock y caja: éxito con descuento de stock,
+# rollback por stock insuficiente, actualización de saldo de caja, rechazo de pago
+# sin caja abierta.
 class TestSalesIntegration:
 
     def test_int_01_venta_descuenta_stock(self, auth_client, product, cash_session):
@@ -188,6 +203,9 @@ class TestSalesIntegration:
 
 @pytest.mark.django_db
 @pytest.mark.integration
+# JWT completo (login -> token -> endpoint protegido), permisos por nivel de rol
+# (INT-08: vendedor no accede a /api/user/) y validación de auth/parámetros en los
+# proxies externos RENIEC (DNI) y SUNAT (RUC).
 class TestAuthenticationAndProxyIntegration:
 
     def test_int_05_jwt_autenticacion(self, api_client, test_user):

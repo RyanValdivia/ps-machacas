@@ -5,6 +5,16 @@ from clients.models import Client, Optometrist, Recipe
 
 User = get_user_model()
 
+# Tests de las vistas API de clients: Client, Optometrist y Recipe (endpoints
+# /api/clients/client/, /optometrist/, /prescription/ y /buscar/).
+# Cubre CRUD completo (create/update/partial_update/delete) con casos de éxito y de
+# error de validación para cada recurso, respuestas con el wrapper {success, data/errors},
+# paginación (activa con >10 registros vía page_size, formato {results, count} vs.
+# listado corto sin paginar vía formato {data}), búsqueda de cliente por documento
+# (tipo por defecto DNI, número faltante, no encontrado, y el caso de
+# MultipleObjectsReturned simulado con monkeypatch), y búsqueda general por nombre/
+# documento (?search=).
+
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado"""

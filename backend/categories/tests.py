@@ -1,6 +1,13 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+# Tests de ProductCategory (categorías de producto).
+# Cubre: modelo (normalización en save: catproCode a mayúsculas, catproNom a title
+# case, strip de espacios; constraints unique en code/nom vía full_clean; default de
+# catproRequiereInventario), serializer (campos, validación de datos vacíos/incompletos)
+# y viewset CRUD en /api/categories/categories/ (incluye rechazo de código duplicado)
+# más resolución de urls.
+
 
 @pytest.mark.django_db
 class TestProductCategoryModel:

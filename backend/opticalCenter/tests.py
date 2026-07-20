@@ -8,6 +8,15 @@ from opticalCenter.models import OpticalCenter
 
 User = get_user_model()
 
+# Tests de OpticalCenter: configuración general de la empresa, modelada como un
+# registro singleton (pk=1). Cubre el viewset: GET auto-crea el registro si no existe,
+# POST funciona como upsert (crea o actualiza), PUT/PATCH actualizan datos y logo
+# (con mock de FileSystemStorage), DELETE está bloqueado por http_method_names (405)
+# y a nivel de modelo delete() no borra el registro (protección de la config única).
+# Varios tests mockean fallos (save, update, os.makedirs, open) para cubrir los
+# bloques except de cada acción y las ramas de _ensure_media_dirs (MEDIA_ROOT no
+# string, modo "frozen"/Tauri exe, error de permisos, error crítico genérico).
+
 @pytest.fixture
 def auth_client(api_client, db):
     """Fixture para proporcionar un cliente de API autenticado para OpticalCenter"""

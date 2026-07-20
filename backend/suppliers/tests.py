@@ -9,6 +9,13 @@ from .serializers import SupplierSerializer, SupplierListSerializer
 from users.models import User, Role
 
 
+# Tests del módulo suppliers: modelo Supplier (proveedores), su serializer y el
+# SupplierViewSet en /api/suppliers/. Cubre validaciones de formato (RUC 11 dígitos
+# numérico, teléfono 9 dígitos, email, razón social mínima, departamento válido),
+# RUC duplicado, la propiedad is_active, CRUD completo vía API con permisos por rol,
+# y el caso de borrado bloqueado cuando el proveedor tiene productos asociados
+# (ProtectedError).
+
 @pytest.fixture
 def logistica_role(db):
     """Rol Nivel 3 (Logística)"""
@@ -114,6 +121,8 @@ def supplier_data():
 
 # ==================== MODEL TESTS ====================
 
+# Validaciones a nivel modelo (clean/full_clean): RUC, teléfono, email, razón
+# social, departamento inválido, RUC duplicado y propiedad is_active.
 class TestSupplierModel:
     """Tests para el modelo Supplier"""
 
@@ -246,6 +255,8 @@ class TestSupplierModel:
 
 # ==================== SERIALIZER TESTS ====================
 
+# Validadores del serializer (equivalentes a los del modelo: RUC, teléfono, email,
+# razón social, ciudad) y conversión de strings vacías a None en campos opcionales.
 class TestSupplierSerializer:
     """Tests para SupplierSerializer"""
 
@@ -376,6 +387,9 @@ class TestSupplierListSerializer:
 
 # ==================== VIEW TESTS ====================
 
+# CRUD completo del endpoint /api/suppliers/: auth requerida, búsqueda por RUC y
+# por razón social, y bloqueo de borrado cuando el proveedor tiene productos
+# asociados (ProtectedError, responde 400).
 class TestSupplierViewSet:
     """Tests para SupplierViewSet"""
 
@@ -509,6 +523,9 @@ class TestSupplierViewSet:
 
 # ==================== PERMISSION TESTS ====================
 
+# Acceso por rol: logística y gerente permitido. El caso de vendedor es ambiguo
+# a propósito (ver comentario en el test): el ViewSet usa IsAuthenticated, no un
+# permiso de nivel, así que tanto 200 como 403 se aceptan como válidos.
 class TestSupplierPermissions:
     """Tests de permisos para proveedores"""
 
