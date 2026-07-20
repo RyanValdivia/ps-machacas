@@ -14,6 +14,14 @@ Requisitos:
 import os
 import sys
 import time
+
+# Consola Windows (cp1252) no soporta emojis en print por defecto.
+if hasattr(sys.stdout, "reconfigure"):
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 import random
 import argparse
 from pathlib import Path

@@ -14,11 +14,20 @@ Preparación:
   Antes de ejecutar esta prueba, generar al menos 1000 productos con:
     python tests/stress/seed_masivo.py --count 1000
 
-Ejecución:
+Ejecución (headless — reporte HTML):
   locust -f tests/stress/locustfile_inventory.py \\
          --users 100 --spawn-rate 10 --run-time 3m \\
-         --html tests/stress/report_inventory.html --headless \\
+         --html tests/stress/report_stress_02.html --headless \\
          --host http://localhost:8000
+
+Ejecución (interfaz web — capturas para wiki):
+  locust -f tests/stress/locustfile_inventory.py --host http://localhost:8000
+  # Abrir http://localhost:8089 → 100 users, spawn 10, ~3 min
+
+Atajo Windows:
+  cd backend/tests/stress
+  .\\run.ps1 -Test 02 -Mode ui
+  .\\run.ps1 -Test 02 -Mode headless
 
 Variables de entorno requeridas:
   TEST_USERS_JSON = '[{"usuNom":"admin","usuContra":"admin123"}]'

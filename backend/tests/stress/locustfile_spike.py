@@ -141,7 +141,7 @@ class SpikeUser(HttpUser):
     wait_time = between(0.5, 2.0)
 
     def on_start(self):
-        creds = _next_user_credentials()
+        creds = _next_credentials()
         self.token = None
         self.refresh_token = None
         self._product_pool = []

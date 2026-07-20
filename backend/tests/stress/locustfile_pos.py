@@ -16,24 +16,33 @@ Características de estrés real:
   - Clientes aleatorios (a veces genérico, a veces con datos)
   - Dashboard genera sus propios datos de prueba (escritura + lectura simultánea)
 
-Ejecución (headless):
+Ejecución (headless — reporte HTML):
   # NF-STRESS-01 — Ventas concurrentes
   locust -f tests/stress/locustfile_pos.py --tags NF-STRESS-01
          --users 50 --spawn-rate 10 --run-time 2m
-         --html tests/stress/report_pos.html --headless
+         --html tests/stress/report_stress_01.html --headless
          --host http://localhost:8000
 
   # NF-STRESS-03 — Race condition
   locust -f tests/stress/locustfile_pos.py --tags NF-STRESS-03
          --users 10 --spawn-rate 10 --run-time 30s
-         --html tests/stress/report_pos.html --headless
+         --html tests/stress/report_stress_03.html --headless
          --host http://localhost:8000
 
   # NF-STRESS-05 — Dashboard (con generación de datos en paralelo)
   locust -f tests/stress/locustfile_pos.py --tags NF-STRESS-05
-         --users 25 --spawn-rate 5 --run-time 5m
-         --html tests/stress/report_pos.html --headless
+         --users 20 --spawn-rate 5 --run-time 5m
+         --html tests/stress/report_stress_05.html --headless
          --host http://localhost:8000
+
+Ejecución (interfaz web — capturas para wiki):
+  locust -f tests/stress/locustfile_pos.py --tags NF-STRESS-01 --host http://localhost:8000
+  # Abrir http://localhost:8089 y configurar users/spawn según la prueba.
+
+Atajo Windows (UI o headless):
+  cd backend/tests/stress
+  .\\run.ps1 -Test 01 -Mode ui
+  .\\run.ps1 -Test 01 -Mode headless
 
 Variables de entorno requeridas:
   TEST_USERS_JSON   = '[{"usuNom":"admin","usuContra":"admin123"}]'
@@ -73,6 +82,27 @@ _user_pool = itertools.cycle(TEST_USERS)
 _pool_lock = threading.Lock()
 
 RACE_CONDITION_PRODUCT_ID = int(os.getenv("RACE_PRODUCT_ID", "0"))
+
+
+def _parse_active_tags() -> set[str]:
+    """Tags activos desde --tags en CLI o NF_STRESS_TAG (run.ps1)."""
+    env_tag = os.getenv("NF_STRESS_TAG", "").strip()
+    if env_tag:
+        return {t.strip() for t in env_tag.split(",") if t.strip()}
+    for i, arg in enumerate(sys.argv):
+        if arg == "--tags" and i + 1 < len(sys.argv):
+            return {t.strip() for t in sys.argv[i + 1].split(",") if t.strip()}
+    return set()
+
+
+_ACTIVE_TAGS = _parse_active_tags()
+
+
+def _user_class_active(*required_tags: str) -> bool:
+    """Si hay filtro de tags, solo instanciar la User class del escenario activo."""
+    if not _ACTIVE_TAGS:
+        return True
+    return bool(_ACTIVE_TAGS.intersection(required_tags))
 
 _race_results_lock = threading.Lock()
 _race_results = {
@@ -141,6 +171,7 @@ class VentasConcurrentesUser(HttpUser):
       - Auto-reabastecimiento del pool cuando se agotan los productos
     """
 
+    abstract = not _user_class_active("NF-STRESS-01")
     wait_time = between(0.5, 1.5)
     weight = 1
 
@@ -262,6 +293,7 @@ class RaceConditionUser(HttpUser):
         - stock final = 0 (verificar con seed_masivo.py --verificar-stock)
     """
 
+    abstract = not _user_class_active("NF-STRESS-03")
     wait_time = between(0.01, 0.05)
     weight = 1
 
@@ -344,6 +376,7 @@ class DashboardConcurrenteUser(HttpUser):
       - Períodos variados: dia (60%), semana (25%), mes (10%), personalizado (5%)
     """
 
+    abstract = not _user_class_active("NF-STRESS-05")
     wait_time = between(1, 3)
     weight = 1
 
@@ -497,6 +530,14 @@ class DashboardConcurrenteUser(HttpUser):
 # ---------------------------------------------------------------------------
 # Event hook: reporte final de Race Condition
 # ---------------------------------------------------------------------------
+@events.test_start.add_listener
+def reset_race_results(environment, **kwargs):
+    with _race_results_lock:
+        _race_results["success"] = 0
+        _race_results["rejected"] = 0
+        _race_results["other_errors"] = 0
+
+
 @events.quitting.add_listener
 def reporte_race_condition(environment, **kwargs):
     with _race_results_lock:
